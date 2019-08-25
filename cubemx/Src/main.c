@@ -407,6 +407,16 @@ static void MX_TIM4_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
   HAL_TIM_MspPostInit(&htim4);
 
 }
@@ -445,24 +455,25 @@ static void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct;
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOH_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, RX_CS_Pin|LED_1_Pin|LED_2_Pin|LED_3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, TP7_Pin|TP8_Pin|LCD_E_Pin|LCD_DB0_Pin 
+                          |LCD_DB1_Pin|LCD_DB2_Pin|LCD_DB3_Pin|LCD_DB4_Pin 
+                          |LCD_DB5_Pin|LCD_DB6_Pin|LCD_DB7_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, LCD_CS1_Pin|LCD_CS2_Pin|LCD_CS3_Pin|RX_CS_Pin 
+                          |LED_1_Pin|LED_2_Pin|LED_3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, RX_SDN_Pin|LCD_RS_Pin|LCD_RW_Pin|LCD_RES_Pin 
                           |TX_SDN_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, LCD_E_Pin|LCD_DB0_Pin|LCD_DB1_Pin|LCD_DB2_Pin 
-                          |LCD_DB3_Pin|LCD_DB4_Pin|LCD_DB5_Pin|LCD_DB6_Pin 
-                          |LCD_DB7_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, TX_CS_Pin|LED_4_Pin|LED_5_Pin, GPIO_PIN_RESET);
@@ -470,8 +481,21 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED_0_GPIO_Port, LED_0_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : RX_CS_Pin LED_1_Pin LED_2_Pin LED_3_Pin */
-  GPIO_InitStruct.Pin = RX_CS_Pin|LED_1_Pin|LED_2_Pin|LED_3_Pin;
+  /*Configure GPIO pins : TP7_Pin TP8_Pin LCD_E_Pin LCD_DB0_Pin 
+                           LCD_DB1_Pin LCD_DB2_Pin LCD_DB3_Pin LCD_DB4_Pin 
+                           LCD_DB5_Pin LCD_DB6_Pin LCD_DB7_Pin */
+  GPIO_InitStruct.Pin = TP7_Pin|TP8_Pin|LCD_E_Pin|LCD_DB0_Pin 
+                          |LCD_DB1_Pin|LCD_DB2_Pin|LCD_DB3_Pin|LCD_DB4_Pin 
+                          |LCD_DB5_Pin|LCD_DB6_Pin|LCD_DB7_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : LCD_CS1_Pin LCD_CS2_Pin LCD_CS3_Pin RX_CS_Pin 
+                           LED_1_Pin LED_2_Pin LED_3_Pin */
+  GPIO_InitStruct.Pin = LCD_CS1_Pin|LCD_CS2_Pin|LCD_CS3_Pin|RX_CS_Pin 
+                          |LED_1_Pin|LED_2_Pin|LED_3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -491,17 +515,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : LCD_E_Pin LCD_DB0_Pin LCD_DB1_Pin LCD_DB2_Pin 
-                           LCD_DB3_Pin LCD_DB4_Pin LCD_DB5_Pin LCD_DB6_Pin 
-                           LCD_DB7_Pin */
-  GPIO_InitStruct.Pin = LCD_E_Pin|LCD_DB0_Pin|LCD_DB1_Pin|LCD_DB2_Pin 
-                          |LCD_DB3_Pin|LCD_DB4_Pin|LCD_DB5_Pin|LCD_DB6_Pin 
-                          |LCD_DB7_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pins : TX_CS_Pin LED_4_Pin LED_5_Pin */
   GPIO_InitStruct.Pin = TX_CS_Pin|LED_4_Pin|LED_5_Pin;

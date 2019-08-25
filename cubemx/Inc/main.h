@@ -49,6 +49,16 @@
 
 /* Private define ------------------------------------------------------------*/
 
+#define TP7_Pin GPIO_PIN_2
+#define TP7_GPIO_Port GPIOE
+#define TP8_Pin GPIO_PIN_3
+#define TP8_GPIO_Port GPIOE
+#define LCD_CS1_Pin GPIO_PIN_0
+#define LCD_CS1_GPIO_Port GPIOC
+#define LCD_CS2_Pin GPIO_PIN_1
+#define LCD_CS2_GPIO_Port GPIOC
+#define LCD_CS3_Pin GPIO_PIN_2
+#define LCD_CS3_GPIO_Port GPIOC
 #define RX_SCK_Pin GPIO_PIN_5
 #define RX_SCK_GPIO_Port GPIOA
 #define RX_MISO_Pin GPIO_PIN_6
@@ -99,6 +109,10 @@
 #define TX_NIRQ_GPIO_Port GPIOD
 #define LCD_PWM_Pin GPIO_PIN_12
 #define LCD_PWM_GPIO_Port GPIOD
+#define PWM_FAN_L_Pin GPIO_PIN_13
+#define PWM_FAN_L_GPIO_Port GPIOD
+#define PWM_FAN_R_Pin GPIO_PIN_14
+#define PWM_FAN_R_GPIO_Port GPIOD
 #define LED_0_Pin GPIO_PIN_15
 #define LED_0_GPIO_Port GPIOA
 #define LED_1_Pin GPIO_PIN_10
