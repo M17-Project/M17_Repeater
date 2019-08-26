@@ -1949,8 +1949,8 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <wire x1="0" y1="0" x2="1.016" y2="0.635" width="0.1524" layer="21"/>
 <wire x1="0" y1="0.635" x2="0" y2="0" width="0.1524" layer="21"/>
 <wire x1="0" y1="0" x2="0" y2="-0.635" width="0.1524" layer="21"/>
-<pad name="C" x="-3.81" y="0" drill="1.1" diameter="1.7"/>
-<pad name="A" x="3.81" y="0" drill="1.1" diameter="1.7"/>
+<pad name="C" x="-3.81" y="0" drill="1.1" diameter="2.54"/>
+<pad name="A" x="3.81" y="0" drill="1.1" diameter="2.54"/>
 <text x="-2.032" y="1.651" size="1.27" layer="25" ratio="10">&gt;NAME</text>
 <text x="-2.032" y="-2.921" size="1.27" layer="27" ratio="10">&gt;VALUE</text>
 <rectangle x1="-1.651" y1="-0.95" x2="-1.143" y2="0.92" layer="21"/>
@@ -2097,6 +2097,7 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <pin name="FB" x="12.7" y="5.08" length="short" direction="in" rot="R180"/>
 <pin name="OUT" x="12.7" y="0" length="short" direction="out" rot="R180"/>
 <pin name="GND" x="12.7" y="-5.08" length="short" direction="pwr" rot="R180"/>
+<pin name="TAB" x="-10.16" y="-5.08" length="short" direction="in"/>
 </symbol>
 </symbols>
 <devicesets>
@@ -2125,6 +2126,7 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <connect gate="A" pin="GND" pad="3"/>
 <connect gate="A" pin="OFF" pad="5"/>
 <connect gate="A" pin="OUT" pad="2"/>
+<connect gate="A" pin="TAB" pad="6"/>
 <connect gate="A" pin="VIN" pad="1"/>
 </connects>
 <technologies>
@@ -29966,12 +29968,20 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <segment>
 <pinref part="IC4" gate="A" pin="OFF"/>
 <wire x1="309.88" y1="238.76" x2="307.34" y2="238.76" width="0.1524" layer="91"/>
-<wire x1="307.34" y1="238.76" x2="307.34" y2="200.66" width="0.1524" layer="91"/>
+<wire x1="307.34" y1="238.76" x2="307.34" y2="233.68" width="0.1524" layer="91"/>
 <pinref part="GND53" gate="1" pin="GND"/>
 <pinref part="IC5" gate="A" pin="OFF"/>
-<wire x1="307.34" y1="200.66" x2="307.34" y2="185.42" width="0.1524" layer="91"/>
+<wire x1="307.34" y1="233.68" x2="307.34" y2="200.66" width="0.1524" layer="91"/>
+<wire x1="307.34" y1="200.66" x2="307.34" y2="195.58" width="0.1524" layer="91"/>
+<wire x1="307.34" y1="195.58" x2="307.34" y2="185.42" width="0.1524" layer="91"/>
 <wire x1="309.88" y1="200.66" x2="307.34" y2="200.66" width="0.1524" layer="91"/>
 <junction x="307.34" y="200.66"/>
+<pinref part="IC4" gate="A" pin="TAB"/>
+<wire x1="309.88" y1="233.68" x2="307.34" y2="233.68" width="0.1524" layer="91"/>
+<pinref part="IC5" gate="A" pin="TAB"/>
+<wire x1="309.88" y1="195.58" x2="307.34" y2="195.58" width="0.1524" layer="91"/>
+<junction x="307.34" y="195.58"/>
+<junction x="307.34" y="233.68"/>
 </segment>
 <segment>
 <pinref part="IC4" gate="A" pin="GND"/>
@@ -30886,6 +30896,11 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <wire x1="43.18" y1="243.84" x2="45.72" y2="243.84" width="0.1524" layer="91"/>
 <label x="45.72" y="243.84" size="1.27" layer="95" xref="yes"/>
 </segment>
+<segment>
+<pinref part="U1" gate="G$1" pin="P$16"/>
+<wire x1="327.66" y1="53.34" x2="317.5" y2="53.34" width="0.1524" layer="91"/>
+<label x="317.5" y="53.34" size="1.27" layer="95" rot="R180" xref="yes"/>
+</segment>
 </net>
 <net name="LCD_RES" class="0">
 <segment>
@@ -30982,12 +30997,22 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <wire x1="27.94" y1="241.3" x2="25.4" y2="241.3" width="0.1524" layer="91"/>
 <label x="25.4" y="241.3" size="1.27" layer="95" rot="R180" xref="yes"/>
 </segment>
+<segment>
+<pinref part="U1" gate="G$1" pin="P$15"/>
+<wire x1="327.66" y1="55.88" x2="317.5" y2="55.88" width="0.1524" layer="91"/>
+<label x="317.5" y="55.88" size="1.27" layer="95" rot="R180" xref="yes"/>
+</segment>
 </net>
 <net name="LCD_CS3" class="0">
 <segment>
 <pinref part="SV1" gate="1" pin="18"/>
 <wire x1="27.94" y1="243.84" x2="25.4" y2="243.84" width="0.1524" layer="91"/>
 <label x="25.4" y="243.84" size="1.27" layer="95" rot="R180" xref="yes"/>
+</segment>
+<segment>
+<pinref part="U1" gate="G$1" pin="P$17"/>
+<wire x1="327.66" y1="50.8" x2="317.5" y2="50.8" width="0.1524" layer="91"/>
+<label x="317.5" y="50.8" size="1.27" layer="95" rot="R180" xref="yes"/>
 </segment>
 </net>
 <net name="LCD_A" class="0">
