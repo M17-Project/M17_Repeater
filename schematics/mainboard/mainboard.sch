@@ -29658,7 +29658,6 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <part name="TP3" library="testpad" deviceset="TP" device="B2,54"/>
 <part name="TP4" library="testpad" deviceset="TP" device="B2,54"/>
 <part name="TP5" library="testpad" deviceset="TP" device="B2,54"/>
-<part name="TP6" library="testpad" deviceset="TP" device="B2,54"/>
 <part name="TP7" library="testpad" deviceset="TP" device="B2,54"/>
 <part name="TP8" library="testpad" deviceset="TP" device="B2,54"/>
 <part name="R48" library="resistor" deviceset="R-EU_" device="R0805" value="10k"/>
@@ -29976,7 +29975,6 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <instance part="TP3" gate="G$1" x="381" y="243.84"/>
 <instance part="TP4" gate="G$1" x="63.5" y="25.4"/>
 <instance part="TP5" gate="G$1" x="63.5" y="104.14"/>
-<instance part="TP6" gate="G$1" x="160.02" y="254"/>
 <instance part="TP7" gate="G$1" x="317.5" y="101.6"/>
 <instance part="TP8" gate="G$1" x="307.34" y="101.6"/>
 <instance part="R48" gate="G$1" x="378.46" y="299.72" rot="R90"/>
@@ -30817,10 +30815,6 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <junction x="165.1" y="259.08"/>
 <pinref part="IC3" gate="B" pin="I0"/>
 <wire x1="170.18" y1="248.92" x2="165.1" y2="248.92" width="0.1524" layer="91"/>
-<pinref part="TP6" gate="G$1" pin="TP"/>
-<wire x1="160.02" y1="251.46" x2="160.02" y2="248.92" width="0.1524" layer="91"/>
-<wire x1="160.02" y1="248.92" x2="165.1" y2="248.92" width="0.1524" layer="91"/>
-<junction x="165.1" y="248.92"/>
 </segment>
 </net>
 <net name="TX_MISO" class="0">
