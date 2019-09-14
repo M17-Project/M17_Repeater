@@ -41,7 +41,17 @@
 #include "stm32f7xx_hal.h"
 
 /* USER CODE BEGIN Includes */
+#include "radio_config.h"
 
+#define	FRAMESIZE		160*2					//20+20=40ms frame
+#define	RAW_BYTES		8*2
+#define	CRC_LEN			2
+#define	ENC_LEN			(RAW_BYTES)*2
+#define	PLOAD_LEN		97
+
+#define	DC_OFFSET		2040					//input signal DC offset
+
+#define	MAX_TX_POWER	0x7F					//+20dBm
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -59,7 +69,12 @@ UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
+//Si 446x RELATED
+const uint8_t config[] = RADIO_CONFIGURATION_DATA_ARRAY;	//config
+volatile uint8_t RX_ints[8];								//interrupts
+volatile uint8_t r_initd=0;									//RX initialized?
 
+volatile uint8_t rcv_buff[PLOAD_LEN];						//Si RX buffer
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -78,7 +93,241 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
+//------------------------------SPI1 - Si4463 - RX------------------------------
+void RX_WaitForCTS(void)
+{
+	uint8_t cts[1]={0x00};
+	const uint8_t dta[1]={0x44};
 
+	do
+	{
+		HAL_GPIO_WritePin(RX_CS_GPIO_Port, RX_CS_Pin, 0);
+		HAL_SPI_Transmit(&hspi1, dta, 1, 100);
+		HAL_SPI_Receive(&hspi1, cts, 1, 100);
+		//if(cts[0]!=0xFF)
+			HAL_GPIO_WritePin(RX_CS_GPIO_Port, RX_CS_Pin, 1);
+	}while(cts[0]!=0xFF);
+}
+
+void RX_Send(uint8_t *data, uint8_t len)
+{
+	RX_WaitForCTS();
+	HAL_GPIO_WritePin(RX_CS_GPIO_Port, RX_CS_Pin, 0);
+	HAL_SPI_Transmit(&hspi1, data, len, 100);
+	HAL_GPIO_WritePin(RX_CS_GPIO_Port, RX_CS_Pin, 1);
+}
+
+void RX_GetResponse(uint8_t len, uint8_t *data)
+{
+	uint8_t cts[1]={0x00};
+	uint8_t dta[1]={0x44};
+
+	while(cts[0]!=0xFF)
+	{
+		HAL_GPIO_WritePin(RX_CS_GPIO_Port, RX_CS_Pin, 0);
+		HAL_SPI_Transmit(&hspi1, dta, 1, 100);
+		HAL_SPI_Receive(&hspi1, cts, 1, 1);
+
+		if(cts[0]!=0xFF)
+			HAL_GPIO_WritePin(RX_CS_GPIO_Port, RX_CS_Pin, 1);
+	}
+
+	HAL_SPI_Receive(&hspi1, data, len, 100);
+
+	HAL_GPIO_WritePin(RX_CS_GPIO_Port, RX_CS_Pin, 1);
+}
+
+void RX_ReadRxDataBuff(uint8_t len, uint8_t *data)
+{
+	uint8_t cmd[1]={0x77};
+
+	HAL_GPIO_WritePin(RX_CS_GPIO_Port, RX_CS_Pin, 0);
+	HAL_SPI_Transmit(&hspi1, cmd, 1, 100);
+	HAL_SPI_Receive(&hspi1, data, len, 100);
+	HAL_GPIO_WritePin(RX_CS_GPIO_Port, RX_CS_Pin, 1);
+}
+
+//------------------------------RX Si4463 FUNCS------------------------------
+void RX_Reset(void)
+{
+	HAL_GPIO_WritePin(RX_SDN_GPIO_Port, RX_SDN_Pin, 1);
+	HAL_Delay(5);
+	HAL_GPIO_WritePin(RX_SDN_GPIO_Port, RX_SDN_Pin, 0);
+	HAL_Delay(5);
+}
+
+static void RX_SetProp(uint8_t* vals, uint8_t group, uint8_t number, uint8_t len)
+{
+	uint8_t data[16]={0x11,	group, len, number};
+
+	memcpy(data + 4, vals, len);
+
+	RX_WaitForCTS();
+	RX_Send(data, len + 4);
+}
+
+static void RX_StartupConfig(void)
+{
+	uint8_t buff[17];
+
+	for(uint16_t i=0; i<sizeof(config); i++)
+	{
+		memcpy(buff, &config[i], sizeof(buff));
+		RX_WaitForCTS();
+		RX_Send(&buff[1], buff[0]);
+		i += buff[0];
+	}
+}
+
+static void RX_Interrupts(void* buff)
+{
+	uint8_t data = 0x20;
+
+	RX_Send(&data, 1);
+	if(buff!=NULL)
+		RX_GetResponse(8, buff);
+}
+
+/*static void RX_InterruptsNoCTS(void* buff)
+{
+	uint8_t v = 0x20;
+
+	HAL_GPIO_WritePin(RX_CS_GPIO_Port, RX_CS_Pin, 0);
+	HAL_SPI_Transmit(&hspi1, &v, 1, 100);
+	HAL_SPI_Receive(&hspi1, buff, 8, 100);
+	HAL_GPIO_WritePin(RX_CS_GPIO_Port, RX_CS_Pin, 1);
+}*/
+
+static void RX_Interrupts2(void* buff, uint8_t clearPH, uint8_t clearMODEM, uint8_t clearCHIP)
+{
+	uint8_t data[] = {
+		0x20,
+		clearPH,
+		clearMODEM,
+		clearCHIP
+	};
+
+	RX_Send(data, 4);
+	if(buff!=NULL)
+		RX_GetResponse(8, buff);
+}
+
+static uint8_t RX_GetState(void)
+{
+	uint8_t state[2]={0, 0};
+	uint8_t get_state_cmd=0x33;
+
+	RX_WaitForCTS();
+	RX_Send(&get_state_cmd, 1);
+	RX_GetResponse(2, state);
+
+	return state[0]&0x0F;
+}
+
+static void RX_SetState(uint8_t newState)
+{
+	uint8_t data[2]={0x34, newState};
+
+	RX_Send(data, 2);
+}
+
+void RX_Sleep(void)
+{
+	uint8_t state=RX_GetState();
+
+	if(state==7 || state==5)
+		return;
+
+	RX_SetState(1);
+}
+
+void RX_ClearFIFO(uint8_t fifos)
+{
+	uint8_t msg[3]={0x15, fifos};
+
+	RX_Send(&msg, 2);
+}
+
+void RX_StartRx(uint8_t ch, uint8_t len)
+{
+	//RX_SetState(3);		//RX state
+	RX_ClearFIFO(3);	//clear both FIFOs
+	//RX_Interrupts2(NULL, 0, 0, 0xFF);	//clear some interrupts
+
+	uint8_t msg[8]={0x32, ch, 0, 0, len, 0x08, 0x08, 0x08};
+
+	RX_Send(msg, 8);
+}
+
+void RX_FreqSet(uint32_t freq)	//freq in Hz
+{
+	uint8_t inte=0x3C;	//default values
+	uint64_t frac=0x00080000;
+
+	freq=freq*(30.0/32.0);
+	inte=freq/7500000-1;
+	frac=(freq-(uint32_t)(inte+1)*7500000)/75;
+	frac=(uint64_t)frac*(1<<19)/100000+(uint32_t)(1<<19);
+
+	uint8_t vals[4]={inte, (frac>>16)&0xFF, (frac>>8)&0xFF, frac&0xFF};
+
+	RX_SetProp(&vals, 0x40, 0x00, 4);
+}
+
+uint8_t RX_GetRSSI(void)
+{
+	uint8_t v=0x50;
+	uint8_t r[4];
+
+	HAL_GPIO_WritePin(RX_CS_GPIO_Port, RX_CS_Pin, 0);
+	HAL_SPI_Transmit(&hspi1, &v, 1, 100);
+	HAL_SPI_Receive(&hspi1, r, 4, 100);
+	HAL_GPIO_WritePin(RX_CS_GPIO_Port, RX_CS_Pin, 1);
+
+	return r[0];
+}
+
+void RX_GetInfo(uint8_t *resp)
+{
+	uint8_t cmd=0x01;
+
+	RX_Send(&cmd, 1);
+	RX_WaitForCTS();
+	RX_GetResponse(8, resp);
+}
+
+uint8_t RX_Check(void)
+{
+	uint8_t info[8];
+
+	RX_GetInfo(info);
+
+	if(info[1]==0x44 && info[2]==0x63)
+		return 0;
+
+	return 1;
+}
+
+//
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	//RX_NIRQ
+	if(GPIO_Pin==GPIO_PIN_5 && r_initd==1)
+	{
+		RX_Interrupts(RX_ints);	//check pending interrupt flags
+
+		//PACKET_RX_PEND flag set?
+		if(RX_ints[2]&(1<<4))
+		{
+			HAL_GPIO_TogglePin(LED_0_GPIO_Port, LED_0_Pin);
+			RX_ReadRxDataBuff(PLOAD_LEN, rcv_buff);
+			RX_ClearFIFO(3);
+		}
+
+		//clear pending flags
+		RX_Interrupts(NULL);
+	}
+}
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -122,14 +371,32 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
+  HAL_Delay(500);
+  RX_Reset();
 
+  if(RX_Check())	//fucked up comms with Si4463
+  {
+	  while(1)
+	  {
+		  HAL_GPIO_TogglePin(LED_0_GPIO_Port, LED_0_Pin);
+		  HAL_Delay(100);
+	  }
+  }
+
+  RX_StartupConfig();
+  RX_Interrupts(NULL);
+  RX_FreqSet(439575000);
+  RX_Sleep();
+  RX_StartRx(0, PLOAD_LEN);
+  r_initd=1;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
+	  //HAL_GPIO_TogglePin(LED_0_GPIO_Port, LED_0_Pin);
+	  //HAL_Delay(1000);
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -281,17 +548,17 @@ static void MX_SPI1_Init(void)
   hspi1.Instance = SPI1;
   hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_4BIT;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
   hspi1.Init.CRCPolynomial = 7;
   hspi1.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
-  hspi1.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
+  hspi1.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
   if (HAL_SPI_Init(&hspi1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -307,17 +574,17 @@ static void MX_SPI2_Init(void)
   hspi2.Instance = SPI2;
   hspi2.Init.Mode = SPI_MODE_MASTER;
   hspi2.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi2.Init.DataSize = SPI_DATASIZE_4BIT;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
   hspi2.Init.CRCPolynomial = 7;
   hspi2.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
-  hspi2.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
+  hspi2.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
   if (HAL_SPI_Init(&hspi2) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -463,47 +730,58 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, TP7_Pin|TP8_Pin|LCD_E_Pin|LCD_DB0_Pin 
-                          |LCD_DB1_Pin|LCD_DB2_Pin|LCD_DB3_Pin|LCD_DB4_Pin 
-                          |LCD_DB5_Pin|LCD_DB6_Pin|LCD_DB7_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, TP7_Pin|TP8_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, LCD_CS1_Pin|LCD_CS2_Pin|LCD_CS3_Pin|RX_CS_Pin 
-                          |LED_1_Pin|LED_2_Pin|LED_3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, LCD_CS1_Pin|LCD_CS2_Pin|LCD_CS3_Pin|LED_1_Pin 
+                          |LED_2_Pin|LED_3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, RX_SDN_Pin|LCD_RS_Pin|LCD_RW_Pin|LCD_RES_Pin 
-                          |TX_SDN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(RX_CS_GPIO_Port, RX_CS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, TX_CS_Pin|LED_4_Pin|LED_5_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, RX_SDN_Pin|TX_SDN_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, LCD_RS_Pin|LCD_RW_Pin|LCD_RES_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOE, LCD_E_Pin|LCD_DB0_Pin|LCD_DB1_Pin|LCD_DB2_Pin 
+                          |LCD_DB3_Pin|LCD_DB4_Pin|LCD_DB5_Pin|LCD_DB6_Pin 
+                          |LCD_DB7_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(TX_CS_GPIO_Port, TX_CS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED_0_GPIO_Port, LED_0_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : TP7_Pin TP8_Pin LCD_E_Pin LCD_DB0_Pin 
-                           LCD_DB1_Pin LCD_DB2_Pin LCD_DB3_Pin LCD_DB4_Pin 
-                           LCD_DB5_Pin LCD_DB6_Pin LCD_DB7_Pin */
-  GPIO_InitStruct.Pin = TP7_Pin|TP8_Pin|LCD_E_Pin|LCD_DB0_Pin 
-                          |LCD_DB1_Pin|LCD_DB2_Pin|LCD_DB3_Pin|LCD_DB4_Pin 
-                          |LCD_DB5_Pin|LCD_DB6_Pin|LCD_DB7_Pin;
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOD, LED_4_Pin|LED_5_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : TP7_Pin TP8_Pin */
+  GPIO_InitStruct.Pin = TP7_Pin|TP8_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LCD_CS1_Pin LCD_CS2_Pin LCD_CS3_Pin RX_CS_Pin 
-                           LED_1_Pin LED_2_Pin LED_3_Pin */
-  GPIO_InitStruct.Pin = LCD_CS1_Pin|LCD_CS2_Pin|LCD_CS3_Pin|RX_CS_Pin 
-                          |LED_1_Pin|LED_2_Pin|LED_3_Pin;
+  /*Configure GPIO pins : TAMPER_Pin PTT_Pin ENC_BTN_Pin */
+  GPIO_InitStruct.Pin = TAMPER_Pin|PTT_Pin|ENC_BTN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : LCD_CS1_Pin LCD_CS2_Pin LCD_CS3_Pin RX_CS_Pin */
+  GPIO_InitStruct.Pin = LCD_CS1_Pin|LCD_CS2_Pin|LCD_CS3_Pin|RX_CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pin : RX_NIRQ_Pin */
   GPIO_InitStruct.Pin = RX_NIRQ_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(RX_NIRQ_GPIO_Port, &GPIO_InitStruct);
 
@@ -513,21 +791,32 @@ static void MX_GPIO_Init(void)
                           |TX_SDN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : TX_CS_Pin LED_4_Pin LED_5_Pin */
-  GPIO_InitStruct.Pin = TX_CS_Pin|LED_4_Pin|LED_5_Pin;
+  /*Configure GPIO pins : LCD_E_Pin LCD_DB0_Pin LCD_DB1_Pin LCD_DB2_Pin 
+                           LCD_DB3_Pin LCD_DB4_Pin LCD_DB5_Pin LCD_DB6_Pin 
+                           LCD_DB7_Pin */
+  GPIO_InitStruct.Pin = LCD_E_Pin|LCD_DB0_Pin|LCD_DB1_Pin|LCD_DB2_Pin 
+                          |LCD_DB3_Pin|LCD_DB4_Pin|LCD_DB5_Pin|LCD_DB6_Pin 
+                          |LCD_DB7_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : TX_NIRQ_Pin BTN_0_Pin BTN_1_Pin BTN_2_Pin 
-                           BTN_3_Pin */
-  GPIO_InitStruct.Pin = TX_NIRQ_Pin|BTN_0_Pin|BTN_1_Pin|BTN_2_Pin 
-                          |BTN_3_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  /*Configure GPIO pin : TX_CS_Pin */
+  GPIO_InitStruct.Pin = TX_CS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(TX_CS_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : TX_NIRQ_Pin BTN_3_Pin BTN_2_Pin BTN_1_Pin 
+                           BTN_0_Pin */
+  GPIO_InitStruct.Pin = TX_NIRQ_Pin|BTN_3_Pin|BTN_2_Pin|BTN_1_Pin 
+                          |BTN_0_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
@@ -538,11 +827,38 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LED_0_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PTT_Pin ENC_BTN_Pin */
-  GPIO_InitStruct.Pin = PTT_Pin|ENC_BTN_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  /*Configure GPIO pins : LED_1_Pin LED_2_Pin LED_3_Pin */
+  GPIO_InitStruct.Pin = LED_1_Pin|LED_2_Pin|LED_3_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : LED_4_Pin LED_5_Pin */
+  GPIO_InitStruct.Pin = LED_4_Pin|LED_5_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI2_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI3_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
 }
 

@@ -53,6 +53,9 @@
 #define TP7_GPIO_Port GPIOE
 #define TP8_Pin GPIO_PIN_3
 #define TP8_GPIO_Port GPIOE
+#define TAMPER_Pin GPIO_PIN_6
+#define TAMPER_GPIO_Port GPIOE
+#define TAMPER_EXTI_IRQn EXTI9_5_IRQn
 #define LCD_CS1_Pin GPIO_PIN_0
 #define LCD_CS1_GPIO_Port GPIOC
 #define LCD_CS2_Pin GPIO_PIN_1
@@ -69,6 +72,7 @@
 #define RX_CS_GPIO_Port GPIOC
 #define RX_NIRQ_Pin GPIO_PIN_5
 #define RX_NIRQ_GPIO_Port GPIOC
+#define RX_NIRQ_EXTI_IRQn EXTI9_5_IRQn
 #define RX_SDN_Pin GPIO_PIN_0
 #define RX_SDN_GPIO_Port GPIOB
 #define LCD_RS_Pin GPIO_PIN_1
@@ -107,6 +111,7 @@
 #define TX_CS_GPIO_Port GPIOD
 #define TX_NIRQ_Pin GPIO_PIN_9
 #define TX_NIRQ_GPIO_Port GPIOD
+#define TX_NIRQ_EXTI_IRQn EXTI9_5_IRQn
 #define LCD_PWM_Pin GPIO_PIN_12
 #define LCD_PWM_GPIO_Port GPIOD
 #define PWM_FAN_L_Pin GPIO_PIN_13
@@ -125,22 +130,28 @@
 #define LED_4_GPIO_Port GPIOD
 #define LED_5_Pin GPIO_PIN_1
 #define LED_5_GPIO_Port GPIOD
-#define BTN_0_Pin GPIO_PIN_2
-#define BTN_0_GPIO_Port GPIOD
-#define BTN_1_Pin GPIO_PIN_3
-#define BTN_1_GPIO_Port GPIOD
-#define BTN_2_Pin GPIO_PIN_4
-#define BTN_2_GPIO_Port GPIOD
-#define BTN_3_Pin GPIO_PIN_7
+#define BTN_3_Pin GPIO_PIN_2
 #define BTN_3_GPIO_Port GPIOD
+#define BTN_3_EXTI_IRQn EXTI2_IRQn
+#define BTN_2_Pin GPIO_PIN_3
+#define BTN_2_GPIO_Port GPIOD
+#define BTN_2_EXTI_IRQn EXTI3_IRQn
+#define BTN_1_Pin GPIO_PIN_4
+#define BTN_1_GPIO_Port GPIOD
+#define BTN_1_EXTI_IRQn EXTI4_IRQn
+#define BTN_0_Pin GPIO_PIN_7
+#define BTN_0_GPIO_Port GPIOD
+#define BTN_0_EXTI_IRQn EXTI9_5_IRQn
 #define ENC_B_Pin GPIO_PIN_4
 #define ENC_B_GPIO_Port GPIOB
 #define ENC_A_Pin GPIO_PIN_5
 #define ENC_A_GPIO_Port GPIOB
 #define PTT_Pin GPIO_PIN_0
 #define PTT_GPIO_Port GPIOE
+#define PTT_EXTI_IRQn EXTI0_IRQn
 #define ENC_BTN_Pin GPIO_PIN_1
 #define ENC_BTN_GPIO_Port GPIOE
+#define ENC_BTN_EXTI_IRQn EXTI1_IRQn
 
 /* ########################## Assert Selection ############################## */
 /**
