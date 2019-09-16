@@ -41,6 +41,8 @@
 #include "stm32f7xx_hal.h"
 
 /* USER CODE BEGIN Includes */
+#include "font.h"
+
 #include "radio_config.h"
 
 #define	FRAMESIZE		160*2					//20+20=40ms frame
@@ -308,7 +310,198 @@ uint8_t RX_Check(void)
 	return 1;
 }
 
-//
+//----------------------------------MISC FUNCS---------------------------------
+void Delay(uint32_t val)
+{
+	for(uint32_t i=0; i<val; i++)
+		__ASM volatile("NOP");
+}
+
+//----------------------------------LCD FUNCS----------------------------------
+/*void LCD_Wait(void)
+{
+	HAL_GPIO_WritePin(RS_GPIO_Port, RS_Pin, 0);
+	for(uint8_t i=0; i<100; i++);
+	HAL_GPIO_WritePin(RW_GPIO_Port, RW_Pin, 1);
+	for(uint8_t i=0; i<100; i++);
+	GPIOD->MODER&=~0x0000;
+	while((GPIOD->IDR)&0x80);
+	GPIOD->MODER=0x5555;
+}*/
+
+void LCD_Init(void)
+{
+	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 0);
+	HAL_Delay(0);
+	HAL_GPIO_WritePin(LCD_RES_GPIO_Port, LCD_RES_Pin, 1);
+	HAL_Delay(50);
+	HAL_GPIO_WritePin(LCD_RES_GPIO_Port, LCD_RES_Pin, 0);
+	HAL_Delay(250);
+	HAL_GPIO_WritePin(LCD_RES_GPIO_Port, LCD_RES_Pin, 1);
+	HAL_Delay(50);
+}
+void LCD_SetX(uint8_t x)
+{
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, 0);
+	HAL_GPIO_WritePin(LCD_RW_GPIO_Port, LCD_RW_Pin, 0);
+	Delay(200);
+	GPIOE->ODR&=0x00FF; GPIOE->ODR|=(uint32_t)(0b10111000|x)<<8;
+	Delay(100);
+	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 1);
+	Delay(200);
+	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 0);
+	Delay(200);
+}
+
+void LCD_SetY(uint8_t y)
+{
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, 0);
+	HAL_GPIO_WritePin(LCD_RW_GPIO_Port, LCD_RW_Pin, 0);
+	Delay(200);
+	GPIOE->ODR&=0x00FF; GPIOE->ODR|=(uint32_t)(0b01000000|y)<<8;
+	Delay(100);
+	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 1);
+	Delay(200);
+	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 0);
+	Delay(200);
+}
+
+void LCD_SetZ(uint8_t z)
+{
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, 0);
+	HAL_GPIO_WritePin(LCD_RW_GPIO_Port, LCD_RW_Pin, 0);
+	Delay(200);
+	GPIOE->ODR&=0x00FF; GPIOE->ODR|=(uint32_t)(0b11000000|z)<<8;
+	Delay(100);
+	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 1);
+	Delay(200);
+	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 0);
+	Delay(200);
+}
+
+void LCD_WriteData(uint8_t dta)
+{
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, 1);
+	HAL_GPIO_WritePin(LCD_RW_GPIO_Port, LCD_RW_Pin, 0);
+	Delay(200);
+	GPIOE->ODR&=0x00FF; GPIOE->ODR|=(uint32_t)dta<<8;
+	Delay(125);
+	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 1);
+	Delay(200);
+	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 0);
+	Delay(200);
+}
+
+void LCD_Disp(uint8_t ena)
+{
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, 0);
+	HAL_GPIO_WritePin(LCD_RW_GPIO_Port, LCD_RW_Pin, 0);
+	Delay(200);
+	GPIOE->ODR&=0xFF00; GPIOE->ODR|=(uint32_t)(0b00111110|ena)<<8;
+	Delay(100);
+	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 1);
+	Delay(200);
+	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 0);
+	Delay(200);
+}
+
+void LCD_Clear(void)
+{
+	HAL_GPIO_WritePin(LCD_CS1_GPIO_Port, LCD_CS1_Pin, 0);
+	HAL_GPIO_WritePin(LCD_CS2_GPIO_Port, LCD_CS2_Pin, 0);
+	HAL_GPIO_WritePin(LCD_CS3_GPIO_Port, LCD_CS3_Pin, 0);
+
+	LCD_Disp(0);
+
+	LCD_SetZ(0);
+
+	for(uint8_t x=0; x<8; x++)
+	{
+		for(uint8_t y=0; y<64; y++)
+		{
+			LCD_SetX(x);
+			LCD_SetY(y);
+			LCD_WriteData(0);
+		}
+	}
+
+	LCD_Disp(1);
+}
+
+//1 - 6x8; 2 - 12x16
+void LCD_PutStrFast(uint8_t x, uint8_t y, uint8_t *str, uint8_t font)
+{
+	uint8_t k=0;
+	LCD_SetZ(0);
+	if(font==1)
+	{
+		for(uint j=0; j<strlen(str); j++)
+		{
+			for(uint8_t i=0; i<6; i++)
+			{
+				if((x+k+i)<64)
+				{
+					HAL_GPIO_WritePin(LCD_CS1_GPIO_Port, LCD_CS1_Pin, 0);
+					HAL_GPIO_WritePin(LCD_CS2_GPIO_Port, LCD_CS2_Pin, 1);
+					HAL_GPIO_WritePin(LCD_CS3_GPIO_Port, LCD_CS3_Pin, 1);
+				}
+				else if((x+k+i)<128)
+				{
+					HAL_GPIO_WritePin(LCD_CS1_GPIO_Port, LCD_CS1_Pin, 1);
+					HAL_GPIO_WritePin(LCD_CS2_GPIO_Port, LCD_CS2_Pin, 0);
+					HAL_GPIO_WritePin(LCD_CS3_GPIO_Port, LCD_CS3_Pin, 1);
+				}
+				else
+				{
+					HAL_GPIO_WritePin(LCD_CS1_GPIO_Port, LCD_CS1_Pin, 1);
+					HAL_GPIO_WritePin(LCD_CS2_GPIO_Port, LCD_CS2_Pin, 1);
+					HAL_GPIO_WritePin(LCD_CS3_GPIO_Port, LCD_CS3_Pin, 0);
+				}
+
+				LCD_SetX(y);
+				LCD_SetY((x+k+i)%64);
+				LCD_WriteData(font_6x8[str[j]][i]);
+			}
+
+			k+=6;
+		}
+	}
+	else if(font==2)
+	{
+		for(uint j=0; j<strlen(str); j++)
+		{
+			for(uint8_t i=0; i<24; i++)
+			{
+				if((x+k+i/2)<64)
+				{
+					HAL_GPIO_WritePin(LCD_CS1_GPIO_Port, LCD_CS1_Pin, 0);
+					HAL_GPIO_WritePin(LCD_CS2_GPIO_Port, LCD_CS2_Pin, 1);
+					HAL_GPIO_WritePin(LCD_CS3_GPIO_Port, LCD_CS3_Pin, 1);
+				}
+				else if((x+k+i/2)<128)
+				{
+					HAL_GPIO_WritePin(LCD_CS1_GPIO_Port, LCD_CS1_Pin, 1);
+					HAL_GPIO_WritePin(LCD_CS2_GPIO_Port, LCD_CS2_Pin, 0);
+					HAL_GPIO_WritePin(LCD_CS3_GPIO_Port, LCD_CS3_Pin, 1);
+				}
+				else
+				{
+					HAL_GPIO_WritePin(LCD_CS1_GPIO_Port, LCD_CS1_Pin, 1);
+					HAL_GPIO_WritePin(LCD_CS2_GPIO_Port, LCD_CS2_Pin, 1);
+					HAL_GPIO_WritePin(LCD_CS3_GPIO_Port, LCD_CS3_Pin, 0);
+				}
+
+				LCD_SetX(y+i%2);
+				LCD_SetY((x+k+i/2)%64);
+				LCD_WriteData(font_12x16[str[j]][i]);
+			}
+
+			k+=12;
+		}
+	}
+}
+
+//------------------------------IRQ HANDLER FUNCS------------------------------
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	//RX_NIRQ
@@ -371,7 +564,7 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-  HAL_Delay(500);
+  HAL_Delay(1000);
   RX_Reset();
 
   if(RX_Check())	//fucked up comms with Si4463
@@ -389,14 +582,32 @@ int main(void)
   RX_Sleep();
   RX_StartRx(0, PLOAD_LEN);
   r_initd=1;
+
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+  TIM4->CCR1=99;
+  HAL_Delay(500);
+
+  HAL_GPIO_WritePin(LCD_CS1_GPIO_Port, LCD_CS1_Pin, 0);
+  HAL_GPIO_WritePin(LCD_CS2_GPIO_Port, LCD_CS2_Pin, 0);
+  HAL_GPIO_WritePin(LCD_CS3_GPIO_Port, LCD_CS3_Pin, 0);
+
+  LCD_Init();
+
+  LCD_Clear();
+
+  LCD_PutStrFast(0, 0, "M17 STREFA CENTRUM", 1); LCD_PutStrFast(138, 0, "TEST", 1);
+
+  LCD_PutStrFast(0, 2, "RX   431.975MHz", 1); LCD_PutStrFast(114, 2, "2600653->", 1);
+  LCD_PutStrFast(0, 3, "TX   439.575MHz", 1); LCD_PutStrFast(114, 3, "    ->2600010", 1);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  //HAL_GPIO_TogglePin(LED_0_GPIO_Port, LED_0_Pin);
-	  //HAL_Delay(1000);
+	  HAL_GPIO_TogglePin(LED_0_GPIO_Port, LED_0_Pin);
+	  HAL_Delay(1000);
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -637,9 +848,9 @@ static void MX_TIM4_Init(void)
   TIM_OC_InitTypeDef sConfigOC;
 
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 0;
+  htim4.Init.Prescaler = 21599;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 0;
+  htim4.Init.Period = 99;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
@@ -666,7 +877,7 @@ static void MX_TIM4_Init(void)
   }
 
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
+  sConfigOC.Pulse = 45;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
@@ -674,6 +885,7 @@ static void MX_TIM4_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
+  sConfigOC.Pulse = 0;
   if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -730,7 +942,9 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, TP7_Pin|TP8_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, TP7_Pin|TP8_Pin|LCD_E_Pin|LCD_DB0_Pin 
+                          |LCD_DB1_Pin|LCD_DB2_Pin|LCD_DB3_Pin|LCD_DB4_Pin 
+                          |LCD_DB5_Pin|LCD_DB6_Pin|LCD_DB7_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, LCD_CS1_Pin|LCD_CS2_Pin|LCD_CS3_Pin|LED_1_Pin 
@@ -744,11 +958,6 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LCD_RS_Pin|LCD_RW_Pin|LCD_RES_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, LCD_E_Pin|LCD_DB0_Pin|LCD_DB1_Pin|LCD_DB2_Pin 
-                          |LCD_DB3_Pin|LCD_DB4_Pin|LCD_DB5_Pin|LCD_DB6_Pin 
-                          |LCD_DB7_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(TX_CS_GPIO_Port, TX_CS_Pin, GPIO_PIN_SET);
