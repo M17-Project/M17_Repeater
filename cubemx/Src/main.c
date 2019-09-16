@@ -77,6 +77,13 @@ volatile uint8_t RX_ints[8];								//interrupts
 volatile uint8_t r_initd=0;									//RX initialized?
 
 volatile uint8_t rcv_buff[PLOAD_LEN];						//Si RX buffer
+
+//main
+volatile uint32_t rx_freq=439575000;						//RX frequency in Hz
+volatile uint32_t tx_freq=439575000;						//TX
+
+volatile uint32_t last_id_from=0;
+volatile uint32_t last_id_to=0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -515,6 +522,20 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			HAL_GPIO_TogglePin(LED_0_GPIO_Port, LED_0_Pin);
 			RX_ReadRxDataBuff(PLOAD_LEN, rcv_buff);
 			RX_ClearFIFO(3);
+
+			uint32_t now_id_from=(rcv_buff[19]<<16) | (rcv_buff[20]<<8) | rcv_buff[21];
+			uint32_t now_id_to=(rcv_buff[22]<<16) | (rcv_buff[23]<<8) | rcv_buff[24];
+
+			if(last_id_from!=now_id_from)
+				last_id_from=now_id_from;
+			if(last_id_to!=now_id_to)
+				last_id_to=now_id_to;
+
+			uint8_t s[20];
+			sprintf(s, "%07d->", last_id_from);
+			LCD_PutStrFast(114, 2, s, 1);
+			sprintf(s, "    ->%07d", last_id_to);
+			LCD_PutStrFast(114, 3, s, 1);
 		}
 
 		//clear pending flags
@@ -578,7 +599,7 @@ int main(void)
 
   RX_StartupConfig();
   RX_Interrupts(NULL);
-  RX_FreqSet(439575000);
+  RX_FreqSet(rx_freq);
   RX_Sleep();
   RX_StartRx(0, PLOAD_LEN);
   r_initd=1;
@@ -597,8 +618,8 @@ int main(void)
 
   LCD_PutStrFast(0, 0, "M17 STREFA CENTRUM", 1); LCD_PutStrFast(138, 0, "TEST", 1);
 
-  LCD_PutStrFast(0, 2, "RX   431.975MHz", 1); LCD_PutStrFast(114, 2, "2600653->", 1);
-  LCD_PutStrFast(0, 3, "TX   439.575MHz", 1); LCD_PutStrFast(114, 3, "    ->2600010", 1);
+  LCD_PutStrFast(0, 2, "RX   439.575MHz", 1);
+  LCD_PutStrFast(0, 3, "TX   439.575MHz", 1);
 
   /* USER CODE END 2 */
 
