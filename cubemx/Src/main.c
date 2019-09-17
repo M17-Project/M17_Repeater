@@ -156,6 +156,60 @@ void RX_ReadRxDataBuff(uint8_t len, uint8_t *data)
 	HAL_GPIO_WritePin(RX_CS_GPIO_Port, RX_CS_Pin, 1);
 }
 
+//------------------------------SPI2 - Si4463 - TX------------------------------
+void TX_WaitForCTS(void)
+{
+	uint8_t cts[1]={0x00};
+	const uint8_t dta[1]={0x44};
+
+	do
+	{
+		HAL_GPIO_WritePin(TX_CS_GPIO_Port, TX_CS_Pin, 0);
+		HAL_SPI_Transmit(&hspi2, dta, 1, 100);
+		HAL_SPI_Receive(&hspi2, cts, 1, 100);
+		//if(cts[0]!=0xFF)
+			HAL_GPIO_WritePin(TX_CS_GPIO_Port, TX_CS_Pin, 1);
+	}while(cts[0]!=0xFF);
+}
+
+void TX_Send(uint8_t *data, uint8_t len)
+{
+	TX_WaitForCTS();
+	HAL_GPIO_WritePin(TX_CS_GPIO_Port, TX_CS_Pin, 0);
+	HAL_SPI_Transmit(&hspi2, data, len, 100);
+	HAL_GPIO_WritePin(TX_CS_GPIO_Port, TX_CS_Pin, 1);
+}
+
+void TX_GetResponse(uint8_t len, uint8_t *data)
+{
+	uint8_t cts[1]={0x00};
+	uint8_t dta[1]={0x44};
+
+	while(cts[0]!=0xFF)
+	{
+		HAL_GPIO_WritePin(TX_CS_GPIO_Port, TX_CS_Pin, 0);
+		HAL_SPI_Transmit(&hspi2, dta, 1, 100);
+		HAL_SPI_Receive(&hspi2, cts, 1, 1);
+
+		if(cts[0]!=0xFF)
+			HAL_GPIO_WritePin(TX_CS_GPIO_Port, TX_CS_Pin, 1);
+	}
+
+	HAL_SPI_Receive(&hspi2, data, len, 100);
+
+	HAL_GPIO_WritePin(TX_CS_GPIO_Port, TX_CS_Pin, 1);
+}
+
+void TX_WriteTxDataBuff(uint8_t *data, uint8_t len)
+{
+	uint8_t cmd = 0x66;
+
+	HAL_GPIO_WritePin(TX_CS_GPIO_Port, TX_CS_Pin, 0);
+	HAL_SPI_Transmit(&hspi2, &cmd, 1, 100);
+	HAL_SPI_Transmit(&hspi2, data, len, 100);
+	HAL_GPIO_WritePin(TX_CS_GPIO_Port, TX_CS_Pin, 1);
+}
+
 //------------------------------RX Si4463 FUNCS------------------------------
 void RX_Reset(void)
 {
@@ -310,6 +364,168 @@ uint8_t RX_Check(void)
 	uint8_t info[8];
 
 	RX_GetInfo(info);
+
+	if(info[1]==0x44 && info[2]==0x63)
+		return 0;
+
+	return 1;
+}
+
+//------------------------------TX Si4463 FUNCS------------------------------
+void TX_Reset(void)
+{
+	HAL_GPIO_WritePin(TX_SDN_GPIO_Port, TX_SDN_Pin, 1);
+	HAL_Delay(5);
+	HAL_GPIO_WritePin(TX_SDN_GPIO_Port, TX_SDN_Pin, 0);
+	HAL_Delay(5);
+}
+
+static void TX_SetProp(uint8_t* vals, uint8_t group, uint8_t number, uint8_t len)
+{
+	uint8_t data[16]={0x11,	group, len, number};
+
+	memcpy(data + 4, vals, len);
+
+	TX_WaitForCTS();
+	TX_Send(data, len + 4);
+}
+
+static void TX_StartupConfig(void)
+{
+	uint8_t buff[17];
+
+	for(uint16_t i=0; i<sizeof(config); i++)
+	{
+		memcpy(buff, &config[i], sizeof(buff));
+		TX_WaitForCTS();
+		TX_Send(&buff[1], buff[0]);
+		i += buff[0];
+	}
+}
+
+static void TX_Interrupts(void* buff)
+{
+	uint8_t data = 0x20;
+
+	TX_Send(&data, 1);
+	if(buff!=NULL)
+		TX_GetResponse(8, buff);
+}
+
+/*static void TX_InterruptsNoCTS(void* buff)
+{
+	uint8_t v = 0x20;
+
+	HAL_GPIO_WritePin(TX_CS_GPIO_Port, TX_CS_Pin, 0);
+	HAL_SPI_Transmit(&hspi2, &v, 1, 100);
+	HAL_SPI_Receive(&hspi21, buff, 8, 100);
+	HAL_GPIO_WritePin(TX_CS_GPIO_Port, TX_CS_Pin, 1);
+}*/
+
+static void TX_Interrupts2(void* buff, uint8_t clearPH, uint8_t clearMODEM, uint8_t clearCHIP)
+{
+	uint8_t data[] = {
+		0x20,
+		clearPH,
+		clearMODEM,
+		clearCHIP
+	};
+
+	TX_Send(data, 4);
+	if(buff!=NULL)
+		TX_GetResponse(8, buff);
+}
+
+static uint8_t TX_GetState(void)
+{
+	uint8_t state[2]={0, 0};
+	uint8_t get_state_cmd=0x33;
+
+	TX_WaitForCTS();
+	TX_Send(&get_state_cmd, 1);
+	TX_GetResponse(2, state);
+
+	return state[0]&0x0F;
+}
+
+static void TX_SetState(uint8_t newState)
+{
+	uint8_t data[2]={0x34, newState};
+
+	TX_Send(data, 2);
+}
+
+void TX_Sleep(void)
+{
+	uint8_t state=TX_GetState();
+
+	if(state==7 || state==5)
+		return;
+
+	TX_SetState(1);
+}
+
+void TX_ClearFIFO(uint8_t fifos)
+{
+	uint8_t msg[3]={0x15, fifos};
+
+	TX_Send(&msg, 2);
+}
+
+void TX_SetTxPower(uint8_t pwr)
+{
+	/*uint8_t msg[5]={0x11, 0x22, 0x01, 0x01, pwr};
+
+	TX_Send(&msg, 5);*/
+	TX_SetProp(&pwr, 0x22, 0x01, 1);
+}
+
+void TX_StartTx(uint8_t ch, uint8_t end_state, uint8_t tx_len)
+{
+	uint8_t msg[7]={0x31, ch, (uint8_t)end_state<<4, 0, tx_len, 0, 0};
+
+	TX_WaitForCTS();
+	TX_Send(&msg, 7);
+}
+
+void TX_TxData(uint8_t *d, uint8_t len, uint8_t ch)
+{
+	TX_ClearFIFO(3);
+	TX_Interrupts2(NULL, 0, 0, 0xFF);
+
+	TX_WriteTxDataBuff(d, len);
+	TX_StartTx(ch, 3, len);	//3 - READY state after TX complete
+}
+
+void TX_FreqSet(uint32_t freq)	//freq in Hz
+{
+	uint8_t inte=0x3C;	//default values
+	uint64_t frac=0x00080000;
+
+	freq=freq*(30.0/32.0);
+	inte=freq/7500000-1;
+	frac=(freq-(uint32_t)(inte+1)*7500000)/75;
+	frac=(uint64_t)frac*(1<<19)/100000+(uint32_t)(1<<19);
+
+	uint8_t vals[4]={inte, (frac>>16)&0xFF, (frac>>8)&0xFF, frac&0xFF};
+
+	TX_SetProp(&vals, 0x40, 0x00, 4);
+}
+
+void TX_GetInfo(uint8_t *resp)
+{
+	uint8_t cmd=0x01;
+
+	TX_Send(&cmd, 1);
+	TX_WaitForCTS();
+	TX_GetResponse(8, resp);
+}
+
+uint8_t TX_Check(void)
+{
+	uint8_t info[8];
+
+	TX_GetInfo(info);
 
 	if(info[1]==0x44 && info[2]==0x63)
 		return 0;
@@ -587,8 +803,9 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_Delay(1000);
   RX_Reset();
+  TX_Reset();
 
-  if(RX_Check())	//fucked up comms with Si4463
+  if(RX_Check() || TX_Check())	//fucked up comms with either one of Si4463
   {
 	  while(1)
 	  {
@@ -597,11 +814,12 @@ int main(void)
 	  }
   }
 
-  RX_StartupConfig();
-  RX_Interrupts(NULL);
-  RX_FreqSet(rx_freq);
-  RX_Sleep();
+  RX_StartupConfig(); TX_StartupConfig();
+  RX_Interrupts(NULL); TX_Interrupts(NULL);
+  RX_FreqSet(rx_freq); TX_FreqSet(rx_freq-7600000);
+  RX_Sleep(); TX_Sleep();
   RX_StartRx(0, PLOAD_LEN);
+  TX_SetTxPower(10);
   r_initd=1;
 
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
@@ -619,7 +837,7 @@ int main(void)
   LCD_PutStrFast(0, 0, "M17 STREFA CENTRUM", 1); LCD_PutStrFast(138, 0, "TEST", 1);
 
   LCD_PutStrFast(0, 2, "RX   439.575MHz", 1);
-  LCD_PutStrFast(0, 3, "TX   439.575MHz", 1);
+  LCD_PutStrFast(0, 3, "TX   431.975MHz", 1);
 
   /* USER CODE END 2 */
 
@@ -629,6 +847,7 @@ int main(void)
   {
 	  HAL_GPIO_TogglePin(LED_0_GPIO_Port, LED_0_Pin);
 	  HAL_Delay(1000);
+	  TX_TxData("1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567", PLOAD_LEN, 0);
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
