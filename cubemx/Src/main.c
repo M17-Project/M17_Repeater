@@ -54,6 +54,8 @@
 #define	DC_OFFSET		2040					//input signal DC offset
 
 #define	MAX_TX_POWER	0x7F					//+20dBm
+
+#define SPLIT			7600000UL				//TX-RX split
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -79,8 +81,8 @@ volatile uint8_t r_initd=0;									//RX initialized?
 volatile uint8_t rcv_buff[PLOAD_LEN];						//Si RX buffer
 
 //main
-volatile uint32_t rx_freq=439575000;						//RX frequency in Hz
-volatile uint32_t tx_freq=439575000;						//TX
+volatile uint32_t tx_freq=439575000;						//TX frequency in Hz
+volatile uint32_t rx_freq=431575000;						//RX
 
 volatile uint32_t last_id_from=0;
 volatile uint32_t last_id_to=0;
@@ -555,7 +557,7 @@ void Delay(uint32_t val)
 void LCD_Init(void)
 {
 	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 0);
-	HAL_Delay(0);
+	HAL_Delay(5);
 	HAL_GPIO_WritePin(LCD_RES_GPIO_Port, LCD_RES_Pin, 1);
 	HAL_Delay(50);
 	HAL_GPIO_WritePin(LCD_RES_GPIO_Port, LCD_RES_Pin, 0);
@@ -569,7 +571,7 @@ void LCD_SetX(uint8_t x)
 	HAL_GPIO_WritePin(LCD_RW_GPIO_Port, LCD_RW_Pin, 0);
 	Delay(200);
 	GPIOE->ODR&=0x00FF; GPIOE->ODR|=(uint32_t)(0b10111000|x)<<8;
-	Delay(100);
+	Delay(200);
 	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 1);
 	Delay(200);
 	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 0);
@@ -582,7 +584,7 @@ void LCD_SetY(uint8_t y)
 	HAL_GPIO_WritePin(LCD_RW_GPIO_Port, LCD_RW_Pin, 0);
 	Delay(200);
 	GPIOE->ODR&=0x00FF; GPIOE->ODR|=(uint32_t)(0b01000000|y)<<8;
-	Delay(100);
+	Delay(200);
 	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 1);
 	Delay(200);
 	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 0);
@@ -595,7 +597,7 @@ void LCD_SetZ(uint8_t z)
 	HAL_GPIO_WritePin(LCD_RW_GPIO_Port, LCD_RW_Pin, 0);
 	Delay(200);
 	GPIOE->ODR&=0x00FF; GPIOE->ODR|=(uint32_t)(0b11000000|z)<<8;
-	Delay(100);
+	Delay(200);
 	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 1);
 	Delay(200);
 	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 0);
@@ -608,7 +610,7 @@ void LCD_WriteData(uint8_t dta)
 	HAL_GPIO_WritePin(LCD_RW_GPIO_Port, LCD_RW_Pin, 0);
 	Delay(200);
 	GPIOE->ODR&=0x00FF; GPIOE->ODR|=(uint32_t)dta<<8;
-	Delay(125);
+	Delay(200);
 	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 1);
 	Delay(200);
 	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 0);
@@ -621,7 +623,7 @@ void LCD_Disp(uint8_t ena)
 	HAL_GPIO_WritePin(LCD_RW_GPIO_Port, LCD_RW_Pin, 0);
 	Delay(200);
 	GPIOE->ODR&=0xFF00; GPIOE->ODR|=(uint32_t)(0b00111110|ena)<<8;
-	Delay(100);
+	Delay(200);
 	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 1);
 	Delay(200);
 	HAL_GPIO_WritePin(LCD_E_GPIO_Port, LCD_E_Pin, 0);
@@ -724,6 +726,37 @@ void LCD_PutStrFast(uint8_t x, uint8_t y, uint8_t *str, uint8_t font)
 	}
 }
 
+//------------------------------------PWMs-------------------------------------
+void LCD_Blight(uint8_t perc)
+{
+	if(perc<101)
+		TIM4->CCR1=perc;
+	else
+		TIM4->CCR1=100;
+
+	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+}
+
+void L_Fan_RPM(uint8_t perc)
+{
+	if(perc<101)
+		TIM4->CCR2=perc;
+	else
+		TIM4->CCR2=100;
+
+	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
+}
+
+void R_Fan_RPM(uint8_t perc)
+{
+	if(perc<101)
+		TIM4->CCR3=perc;
+	else
+		TIM4->CCR3=100;
+
+	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
+}
+
 //------------------------------IRQ HANDLER FUNCS------------------------------
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
@@ -741,6 +774,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 			uint32_t now_id_from=(rcv_buff[19]<<16) | (rcv_buff[20]<<8) | rcv_buff[21];
 			uint32_t now_id_to=(rcv_buff[22]<<16) | (rcv_buff[23]<<8) | rcv_buff[24];
+
+			TX_TxData(rcv_buff, PLOAD_LEN, 0);
 
 			if(last_id_from!=now_id_from)
 				last_id_from=now_id_from;
@@ -801,7 +836,15 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-  HAL_Delay(1000);
+  HAL_Delay(100);
+
+  HAL_GPIO_WritePin(LCD_CS1_GPIO_Port, LCD_CS1_Pin, 0);
+  HAL_GPIO_WritePin(LCD_CS2_GPIO_Port, LCD_CS2_Pin, 0);
+  HAL_GPIO_WritePin(LCD_CS3_GPIO_Port, LCD_CS3_Pin, 0);
+
+  LCD_Init();
+  LCD_Clear();
+
   RX_Reset();
   TX_Reset();
 
@@ -816,28 +859,29 @@ int main(void)
 
   RX_StartupConfig(); TX_StartupConfig();
   RX_Interrupts(NULL); TX_Interrupts(NULL);
-  RX_FreqSet(rx_freq); TX_FreqSet(rx_freq-7600000);
+  RX_FreqSet(rx_freq); TX_FreqSet(tx_freq);
   RX_Sleep(); TX_Sleep();
   RX_StartRx(0, PLOAD_LEN);
   TX_SetTxPower(10);
   r_initd=1;
 
-  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
-  TIM4->CCR1=99;
-  HAL_Delay(500);
+  LCD_Blight(50);
+  L_Fan_RPM(20);
+  R_Fan_RPM(20);
 
-  HAL_GPIO_WritePin(LCD_CS1_GPIO_Port, LCD_CS1_Pin, 0);
-  HAL_GPIO_WritePin(LCD_CS2_GPIO_Port, LCD_CS2_Pin, 0);
-  HAL_GPIO_WritePin(LCD_CS3_GPIO_Port, LCD_CS3_Pin, 0);
+  LCD_PutStrFast(0, 0, "M17 STREFA CENTRUM", 1); LCD_PutStrFast(138, 0, "LAST:", 1);
 
-  LCD_Init();
-
-  LCD_Clear();
-
-  LCD_PutStrFast(0, 0, "M17 STREFA CENTRUM", 1); LCD_PutStrFast(138, 0, "TEST", 1);
-
-  LCD_PutStrFast(0, 2, "RX   439.575MHz", 1);
-  LCD_PutStrFast(0, 3, "TX   431.975MHz", 1);
+  uint8_t line[20];
+  sprintf(line, "RX %dMHz", rx_freq);
+  memmove(&line[7], &line[6], 9);
+  line[6]='.';
+  LCD_PutStrFast(0, 2, line, 1);
+  sprintf(line, "TX %dMHz", tx_freq);
+  memmove(&line[7], &line[6], 9);
+  line[6]='.';
+  LCD_PutStrFast(0, 3, line, 1);
+  if(HAL_GPIO_ReadPin(TAMPER_GPIO_Port, TAMPER_Pin))
+	  LCD_PutStrFast(0, 7, "OBUDOWA OTWARTA", 1);
 
   /* USER CODE END 2 */
 
@@ -847,7 +891,7 @@ int main(void)
   {
 	  HAL_GPIO_TogglePin(LED_0_GPIO_Port, LED_0_Pin);
 	  HAL_Delay(1000);
-	  TX_TxData("1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567", PLOAD_LEN, 0);
+	  //TX_TxData("1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567", PLOAD_LEN, 0);
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -1088,7 +1132,7 @@ static void MX_TIM4_Init(void)
   TIM_OC_InitTypeDef sConfigOC;
 
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 21599;
+  htim4.Init.Prescaler = 2159;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim4.Init.Period = 99;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -1117,7 +1161,7 @@ static void MX_TIM4_Init(void)
   }
 
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 45;
+  sConfigOC.Pulse = 0;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
@@ -1125,7 +1169,6 @@ static void MX_TIM4_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  sConfigOC.Pulse = 0;
   if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);

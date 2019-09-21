@@ -35,6 +35,7 @@ Src/main.o: ../Src/main.c \
  C:/Users/SP5WWP/Documents/M17_Repeater/Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_tim_ex.h \
  C:/Users/SP5WWP/Documents/M17_Repeater/Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_uart.h \
  C:/Users/SP5WWP/Documents/M17_Repeater/Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_uart_ex.h \
+ C:/Users/SP5WWP/Documents/M17_Repeater/Inc/font.h \
  C:/Users/SP5WWP/Documents/M17_Repeater/Inc/radio_config.h
 
 C:/Users/SP5WWP/Documents/M17_Repeater/Inc/main.h:
@@ -108,5 +109,7 @@ C:/Users/SP5WWP/Documents/M17_Repeater/Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7x
 C:/Users/SP5WWP/Documents/M17_Repeater/Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_uart.h:
 
 C:/Users/SP5WWP/Documents/M17_Repeater/Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_uart_ex.h:
+
+C:/Users/SP5WWP/Documents/M17_Repeater/Inc/font.h:
 
 C:/Users/SP5WWP/Documents/M17_Repeater/Inc/radio_config.h:
