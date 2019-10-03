@@ -49,13 +49,15 @@
 #define	RAW_BYTES		8*2
 #define	CRC_LEN			2
 #define	ENC_LEN			(RAW_BYTES)*2
-#define	PLOAD_LEN		97
+#define	PLOAD_LEN		93
 
 #define	DC_OFFSET		2040					//input signal DC offset
 
 #define	MAX_TX_POWER	0x7F					//+20dBm
 
 #define SPLIT			7600000UL				//TX-RX split
+
+#define UART_BUFF_LEN	100						//UART1 buffer length
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -68,8 +70,10 @@ SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
+TIM_HandleTypeDef htim6;
 
 UART_HandleTypeDef huart1;
+DMA_HandleTypeDef hdma_usart1_tx;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -86,11 +90,20 @@ volatile uint32_t rx_freq=431575000;						//RX
 
 volatile uint32_t last_id_from=0;
 volatile uint32_t last_id_to=0;
+
+//UART
+volatile uint8_t rx_buff[UART_BUFF_LEN];
+volatile uint8_t tx_buff[UART_BUFF_LEN];
+volatile uint8_t rx_cnt=0;									//where in rx buffer are we?
+
+//TIMERS
+volatile uint8_t tim_6_initd=0;								//first tim6 irq cleared?
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_DAC_Init(void);
 static void MX_SPI2_Init(void);
@@ -98,6 +111,7 @@ static void MX_TIM4_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_TIM6_Init(void);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
                                 
@@ -757,6 +771,21 @@ void R_Fan_RPM(uint8_t perc)
 	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
 }
 
+//------------------------------------MISC-------------------------------------
+void Tamper_check(void)
+{
+	if(HAL_GPIO_ReadPin(TAMPER_GPIO_Port, TAMPER_Pin))
+	{
+		LCD_PutStrFast(0, 7, "OBUDOWA OTWARTA", 1);
+		HAL_GPIO_WritePin(LED_3_GPIO_Port, LED_3_Pin, 1);
+	}
+	else
+	{
+		LCD_PutStrFast(0, 7, "               ", 1);
+		HAL_GPIO_WritePin(LED_3_GPIO_Port, LED_3_Pin, 0);
+	}
+}
+
 //------------------------------IRQ HANDLER FUNCS------------------------------
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
@@ -776,6 +805,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			uint32_t now_id_to=(rcv_buff[22]<<16) | (rcv_buff[23]<<8) | rcv_buff[24];
 
 			TX_TxData(rcv_buff, PLOAD_LEN, 0);
+			HAL_UART_Transmit(&huart1, "A", 1, 100);
+			HAL_UART_Transmit_DMA(&huart1, rcv_buff, PLOAD_LEN);
 
 			if(last_id_from!=now_id_from)
 				last_id_from=now_id_from;
@@ -791,6 +822,58 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 		//clear pending flags
 		RX_Interrupts(NULL);
+	}
+	else if(GPIO_Pin==TAMPER_Pin)
+	{
+		Tamper_check();
+	}
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if(huart->Instance==USART1)
+	{
+		/*if(rx_buff[0]=='A' && rx_buff[1]=='T')
+		{
+			HAL_TIM_Base_Stop_IT(&htim6);
+			TIM6->CNT=0;
+			HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
+			memset(rx_buff, 0, UART_BUFF_LEN);
+			rx_cnt=0;
+			HAL_UART_Receive_IT(&huart1, &rx_buff[rx_cnt], 1);
+		}
+		else
+		{
+			rx_cnt++;
+			HAL_UART_Receive_IT(&huart1, &rx_buff[rx_cnt], 1);
+			TIM6->CNT=0;
+			HAL_TIM_Base_Start_IT(&htim6);
+		}*/
+		rx_cnt++;
+		HAL_UART_Receive_IT(&huart1, &rx_buff[rx_cnt], 1);
+		if(rx_cnt==4)
+			LCD_PutStrFast(120, 2, rx_buff, 1);
+	}
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if(htim->Instance==TIM6)
+	{
+		/*if(tim_6_initd)
+		{
+			HAL_TIM_Base_Stop_IT(&htim6);
+			TIM6->CNT=0;
+			memset(rx_buff, 0, UART_BUFF_LEN);
+			rx_cnt=0;
+			HAL_UART_Receive_IT(&huart1, &rx_buff[rx_cnt], 1);
+		}
+		else
+		{
+			HAL_TIM_Base_Stop_IT(&htim6);
+			TIM6->CNT=0;
+			tim_6_initd=1;
+		}*/
 	}
 }
 /* USER CODE END PFP */
@@ -828,6 +911,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_ADC1_Init();
   MX_DAC_Init();
   MX_SPI2_Init();
@@ -835,7 +919,12 @@ int main(void)
   MX_USART1_UART_Init();
   MX_SPI1_Init();
   MX_TIM3_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
+  memset(rx_buff, 0, UART_BUFF_LEN);
+  memset(tx_buff, 0, UART_BUFF_LEN);
+  HAL_UART_Receive_IT(&huart1, &rx_buff[rx_cnt], 1);
+  //HAL_TIM_Base_Start_IT(&htim6);
   HAL_Delay(100);
 
   HAL_GPIO_WritePin(LCD_CS1_GPIO_Port, LCD_CS1_Pin, 0);
@@ -852,8 +941,8 @@ int main(void)
   {
 	  while(1)
 	  {
-		  HAL_GPIO_TogglePin(LED_0_GPIO_Port, LED_0_Pin);
-		  HAL_Delay(100);
+		  HAL_GPIO_TogglePin(LED_4_GPIO_Port, LED_4_Pin);
+		  HAL_Delay(200);
 	  }
   }
 
@@ -862,7 +951,7 @@ int main(void)
   RX_FreqSet(rx_freq); TX_FreqSet(tx_freq);
   RX_Sleep(); TX_Sleep();
   RX_StartRx(0, PLOAD_LEN);
-  TX_SetTxPower(10);
+  TX_SetTxPower(MAX_TX_POWER);
   r_initd=1;
 
   LCD_Blight(50);
@@ -880,8 +969,9 @@ int main(void)
   memmove(&line[7], &line[6], 9);
   line[6]='.';
   LCD_PutStrFast(0, 3, line, 1);
-  if(HAL_GPIO_ReadPin(TAMPER_GPIO_Port, TAMPER_Pin))
-	  LCD_PutStrFast(0, 7, "OBUDOWA OTWARTA", 1);
+
+  Tamper_check();
+  HAL_UART_Transmit(&huart1, "BOOT_OK\n", 9, 100);
 
   /* USER CODE END 2 */
 
@@ -889,8 +979,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_GPIO_TogglePin(LED_0_GPIO_Port, LED_0_Pin);
-	  HAL_Delay(1000);
 	  //TX_TxData("1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567", PLOAD_LEN, 0);
   /* USER CODE END WHILE */
 
@@ -1183,6 +1271,31 @@ static void MX_TIM4_Init(void)
 
 }
 
+/* TIM6 init function */
+static void MX_TIM6_Init(void)
+{
+
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim6.Instance = TIM6;
+  htim6.Init.Prescaler = 21599;
+  htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim6.Init.Period = 1999;
+  htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
 /* USART1 init function */
 static void MX_USART1_UART_Init(void)
 {
@@ -1201,6 +1314,21 @@ static void MX_USART1_UART_Init(void)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
+
+}
+
+/** 
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void) 
+{
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA2_Stream7_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream7_IRQn);
 
 }
 
@@ -1258,11 +1386,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : TAMPER_Pin PTT_Pin ENC_BTN_Pin */
-  GPIO_InitStruct.Pin = TAMPER_Pin|PTT_Pin|ENC_BTN_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  /*Configure GPIO pin : TAMPER_Pin */
+  GPIO_InitStruct.Pin = TAMPER_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+  HAL_GPIO_Init(TAMPER_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LCD_CS1_Pin LCD_CS2_Pin LCD_CS3_Pin RX_CS_Pin */
   GPIO_InitStruct.Pin = LCD_CS1_Pin|LCD_CS2_Pin|LCD_CS3_Pin|RX_CS_Pin;
@@ -1332,6 +1460,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PTT_Pin ENC_BTN_Pin */
+  GPIO_InitStruct.Pin = PTT_Pin|ENC_BTN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
