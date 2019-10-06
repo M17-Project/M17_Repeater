@@ -199,6 +199,10 @@
 <wire x1="18.415" y1="18.415" x2="12.7" y2="18.415" width="0.3048" layer="51"/>
 <text x="44.45" y="22.225" size="1.27" layer="51" font="vector">TP7 8</text>
 <text x="53.975" y="8.255" size="1.27" layer="51" font="vector" rot="R180">TAMPER</text>
+<text x="5.08" y="74.295" size="1.27" layer="51" font="vector">GND</text>
+<text x="5.08" y="69.215" size="1.27" layer="51" font="vector">GND</text>
+<text x="5.08" y="64.135" size="1.27" layer="51" font="vector">3V3</text>
+<text x="5.08" y="59.055" size="1.27" layer="51" font="vector">5V</text>
 </plain>
 <libraries>
 <library name="rcl">
