@@ -57,7 +57,7 @@
 
 #define SPLIT			7600000UL				//TX-RX split
 
-#define UART_BUFF_LEN	100						//UART1 buffer length
+#define UART_BUFF_LEN	130						//UART1 buffer length
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -85,8 +85,8 @@ volatile uint8_t r_initd=0;									//RX initialized?
 volatile uint8_t rcv_buff[PLOAD_LEN];						//Si RX buffer
 
 //main
-volatile uint32_t tx_freq=439575000;						//TX frequency in Hz
-volatile uint32_t rx_freq=431575000;						//RX
+volatile uint32_t tx_freq=439075000;						//TX frequency in Hz
+volatile uint32_t rx_freq=431475000;						//RX
 
 volatile uint32_t last_id_from=0;
 volatile uint32_t last_id_to=0;
@@ -786,6 +786,58 @@ void Tamper_check(void)
 	}
 }
 
+HAL_StatusTypeDef HAL_UART_AbortReceive_IT(UART_HandleTypeDef *huart)
+{
+	/* Disable RXNE, PE and ERR (Frame error, noise error, overrun error) interrupts */
+	CLEAR_BIT(huart->Instance->CR1, (USART_CR1_RXNEIE | USART_CR1_PEIE));
+	CLEAR_BIT(huart->Instance->CR3, USART_CR3_EIE);
+
+	/* Disable the UART DMA Rx request if enabled */
+	if(HAL_IS_BIT_SET(huart->Instance->CR3, USART_CR3_DMAR))
+	{
+		CLEAR_BIT(huart->Instance->CR3, USART_CR3_DMAR);
+
+		/* Abort the UART DMA Rx channel : use blocking DMA Abort API (no callback) */
+		//if(huart->hdmarx != NULL)
+		{
+			/* Set the UART DMA Abort callback :
+ 	 	 	 will lead to call HAL_UART_AbortCpltCallback() at end of DMA abort procedure */
+			//huart->hdmarx->XferAbortCallback = UART_DMARxOnlyAbortCallback;
+
+			/* Abort DMA RX */
+			//if(HAL_DMA_Abort_IT(huart->hdmarx) != HAL_OK)
+			{
+				/* Call Directly huart->hdmarx->XferAbortCallback function in case of error */
+				//huart->hdmarx->XferAbortCallback(huart->hdmarx);
+			}
+		}
+		//else
+		{
+			/* Reset Rx transfer counter */
+			huart->RxXferCount = 0x00U;
+
+			/* Restore huart->RxState to Ready */
+			huart->RxState = HAL_UART_STATE_READY;
+
+			/* As no DMA to be aborted, call directly user Abort complete callback */
+			//HAL_UART_AbortReceiveCpltCallback(huart);
+		}
+	}
+	else
+	{
+		/* Reset Rx transfer counter */
+		huart->RxXferCount = 0x00U;
+
+		/* Restore huart->RxState to Ready */
+		huart->RxState = HAL_UART_STATE_READY;
+
+		/* As no DMA to be aborted, call directly user Abort complete callback */
+		//HAL_UART_AbortReceiveCpltCallback(huart);
+	}
+
+	return HAL_OK;
+}
+
 //------------------------------IRQ HANDLER FUNCS------------------------------
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
@@ -833,26 +885,27 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if(huart->Instance==USART1)
 	{
-		/*if(rx_buff[0]=='A' && rx_buff[1]=='T')
-		{
-			HAL_TIM_Base_Stop_IT(&htim6);
-			TIM6->CNT=0;
-			HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
-			memset(rx_buff, 0, UART_BUFF_LEN);
-			rx_cnt=0;
-			HAL_UART_Receive_IT(&huart1, &rx_buff[rx_cnt], 1);
-		}
-		else
-		{
-			rx_cnt++;
-			HAL_UART_Receive_IT(&huart1, &rx_buff[rx_cnt], 1);
-			TIM6->CNT=0;
-			HAL_TIM_Base_Start_IT(&htim6);
-		}*/
 		rx_cnt++;
+
+		if(rx_buff[0]=='A' && rx_buff[1]=='T' && rx_buff[2]=='+')
+		{
+			if(rx_buff[3]=='F' && rx_buff[4]=='R')
+			{
+				if(rx_buff[5]=='A' && rx_buff[6]=='M' && rx_buff[7]=='E' && rx_buff[PLOAD_LEN+9]=='\r' && rx_buff[PLOAD_LEN+10]=='\n')
+				{
+					HAL_TIM_Base_Stop_IT(&htim6);
+					TIM6->CNT=0;
+					HAL_GPIO_TogglePin(LED_5_GPIO_Port, LED_5_Pin);
+					memset(rx_buff, 0, UART_BUFF_LEN);
+					rx_cnt=0;
+					HAL_UART_Receive_IT(&huart1, rx_buff, 1);
+				}
+			}
+		}
+
 		HAL_UART_Receive_IT(&huart1, &rx_buff[rx_cnt], 1);
-		if(rx_cnt==4)
-			LCD_PutStrFast(120, 2, rx_buff, 1);
+		TIM6->CNT=0;
+		HAL_TIM_Base_Start_IT(&htim6);
 	}
 }
 
@@ -860,20 +913,21 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim->Instance==TIM6)
 	{
-		/*if(tim_6_initd)
+		if(tim_6_initd)
 		{
+			HAL_UART_AbortReceive_IT(&huart1);
 			HAL_TIM_Base_Stop_IT(&htim6);
 			TIM6->CNT=0;
 			memset(rx_buff, 0, UART_BUFF_LEN);
 			rx_cnt=0;
-			HAL_UART_Receive_IT(&huart1, &rx_buff[rx_cnt], 1);
+			HAL_UART_Receive_IT(&huart1, rx_buff, 1);
 		}
 		else
 		{
 			HAL_TIM_Base_Stop_IT(&htim6);
 			TIM6->CNT=0;
 			tim_6_initd=1;
-		}*/
+		}
 	}
 }
 /* USER CODE END PFP */
@@ -923,8 +977,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
   memset(rx_buff, 0, UART_BUFF_LEN);
   memset(tx_buff, 0, UART_BUFF_LEN);
-  HAL_UART_Receive_IT(&huart1, &rx_buff[rx_cnt], 1);
   //HAL_TIM_Base_Start_IT(&htim6);
+  HAL_UART_Receive_IT(&huart1, rx_buff, 1);
   HAL_Delay(100);
 
   HAL_GPIO_WritePin(LCD_CS1_GPIO_Port, LCD_CS1_Pin, 0);
@@ -941,7 +995,7 @@ int main(void)
   {
 	  while(1)
 	  {
-		  HAL_GPIO_TogglePin(LED_4_GPIO_Port, LED_4_Pin);
+		  HAL_GPIO_TogglePin(LED_5_GPIO_Port, LED_5_Pin);
 		  HAL_Delay(200);
 	  }
   }
@@ -951,14 +1005,14 @@ int main(void)
   RX_FreqSet(rx_freq); TX_FreqSet(tx_freq);
   RX_Sleep(); TX_Sleep();
   RX_StartRx(0, PLOAD_LEN);
-  TX_SetTxPower(MAX_TX_POWER);
+  TX_SetTxPower(3);//MAX_TX_POWER);
   r_initd=1;
 
   LCD_Blight(50);
   L_Fan_RPM(20);
   R_Fan_RPM(20);
 
-  LCD_PutStrFast(0, 0, "M17 STREFA CENTRUM", 1); LCD_PutStrFast(138, 0, "LAST:", 1);
+  LCD_PutStrFast(0, 0, "SR5MS", 2); LCD_PutStrFast(138, 0, "ACT", 1);
 
   uint8_t line[20];
   sprintf(line, "RX %dMHz", rx_freq);
@@ -979,6 +1033,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  HAL_GPIO_TogglePin(LED_0_GPIO_Port, LED_0_Pin);
+	  HAL_Delay(200);
 	  //TX_TxData("1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567", PLOAD_LEN, 0);
   /* USER CODE END WHILE */
 
