@@ -895,7 +895,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 				{
 					HAL_TIM_Base_Stop_IT(&htim6);
 					TIM6->CNT=0;
-					HAL_GPIO_TogglePin(LED_5_GPIO_Port, LED_5_Pin);
+					TX_TxData(&rx_buff[9], PLOAD_LEN, 0);
 					memset(rx_buff, 0, UART_BUFF_LEN);
 					rx_cnt=0;
 					HAL_UART_Receive_IT(&huart1, rx_buff, 1);
