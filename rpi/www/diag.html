@@ -1,0 +1,331 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>M17 Diagnostics</title>
+<meta name="generator" content="WYSIWYG Web Builder 15 Trial Version - http://www.wysiwygwebbuilder.com">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="Untitled1.css" rel="stylesheet">
+<link href="diag.css" rel="stylesheet">
+<script src="jquery-3.4.1.min.js"></script>
+<script src="scrollspy.min.js"></script>
+<script src="gauge.min.js"></script>
+<script>
+function changeVal()
+{
+   document.gauges[0].value=30;
+   document.gauges[1].value=52;
+   document.gauges[2].value=20;
+   document.gauges[3].value=20;
+}
+
+function LoadFile()
+{
+  var val=0.0;
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("GET", "vals.txt", false);
+  xmlhttp.send();
+  if (xmlhttp.status==200) {
+    var content = xmlhttp.responseText;
+    lines = content.split("\n"); 
+        for(i = 0; i < lines.length; i++){ 
+            val=parseFloat(lines[i]);
+            document.gauges[i].value=val;
+        }
+  }
+}
+
+function LoadLog()
+{
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("GET", "log.txt", false);
+  xmlhttp.send();
+  if (xmlhttp.status==200) {
+    var content = xmlhttp.responseText;
+    lines = content.split("\n"); 
+        //for(i = 0; i < lines.length; i++){ 
+            //lines[i]
+            document.getElementById("TextArea1").value=lines;
+        //}
+  }
+}
+</script>
+</head>
+<body data-spy="scroll" onload="setInterval(LoadFile, 1000);">
+<div id="container">
+<a href="http://www.wysiwygwebbuilder.com" target="_blank"><img src="images/builtwithwwb15.png" alt="WYSIWYG Web Builder" style="position:absolute;left:441px;top:967px;margin: 0;border-width:0;z-index:250"></a>
+<div id="Html1" style="position:absolute;left:131px;top:102px;width:200px;height:200px;z-index:4">
+<canvas data-type="radial-gauge"
+    data-width="200"
+    data-height="200"
+    data-units="deg. C"
+    data-min-value="-50"
+    data-max-value="120"
+    data-major-ticks="-50,-40,-30,-20,-10,0,10,20,30,40,50,60,70,80,90,100,110,120"
+    data-minor-ticks="2"
+    data-stroke-ticks="true"
+    data-highlights='[
+        {"from": 70, "to": 120, "color": "rgba(200, 50, 50, .75)"}
+    ]'
+    data-color-plate="#fff"
+    data-border-shadow-width="0"
+    data-borders="false"
+    data-needle-type="arrow"
+    data-needle-width="2"
+    data-needle-circle-size="7"
+    data-needle-circle-outer="true"
+    data-needle-circle-inner="false"
+    data-animation-duration="500"
+    data-animation-rule="linear"
+></canvas></div>
+<div id="Html2" style="position:absolute;left:381px;top:102px;width:200px;height:200px;z-index:5">
+<canvas data-type="radial-gauge"
+    data-width="200"
+    data-height="200"
+    data-units="deg. C"
+    data-min-value="-50"
+    data-max-value="120"
+    data-major-ticks="-50,-40,-30,-20,-10,0,10,20,30,40,50,60,70,80,90,100,110,120"
+    data-minor-ticks="2"
+    data-stroke-ticks="true"
+    data-highlights='[
+        {"from": 70, "to": 120, "color": "rgba(200, 50, 50, .75)"}
+    ]'
+    data-color-plate="#fff"
+    data-border-shadow-width="0"
+    data-borders="false"
+    data-needle-type="arrow"
+    data-needle-width="2"
+    data-needle-circle-size="7"
+    data-needle-circle-outer="true"
+    data-needle-circle-inner="false"
+    data-animation-duration="500"
+    data-animation-rule="linear"
+></canvas></div>
+<div id="wb_Text1" style="position:absolute;left:81px;top:287px;width:300px;height:27px;text-align:center;z-index:6;">
+<p style="color:#000000;"><span style="font-size:24px;line-height:27.5px;color:#000000;">Case</span></p></div>
+<div id="wb_Text2" style="position:absolute;left:331px;top:287px;width:300px;height:27px;text-align:center;z-index:7;">
+<p style="font-size:24px;line-height:27.5px;color:#000000;"><span style="color:#000000;">PA</span></p></div>
+<div id="Html3" style="position:absolute;left:131px;top:341px;width:200px;height:200px;z-index:8">
+<canvas data-type="radial-gauge"
+    data-width="200"
+    data-height="200"
+    data-units="%RPM"
+    data-min-value="0"
+    data-max-value="100"
+    data-major-ticks="0,10,20,30,40,50,60,70,80,90,100"
+    data-minor-ticks="2"
+    data-stroke-ticks="true"
+    data-highlights='[
+        {"from": 90, "to": 100, "color": "rgba(200, 200, 0, .75)"}
+    ]'
+    data-color-plate="#fff"
+    data-border-shadow-width="0"
+    data-borders="false"
+    data-needle-type="arrow"
+    data-needle-width="2"
+    data-needle-circle-size="7"
+    data-needle-circle-outer="true"
+    data-needle-circle-inner="false"
+    data-animation-duration="500"
+    data-animation-rule="linear"
+></canvas></div>
+<div id="wb_Text3" style="position:absolute;left:81px;top:526px;width:300px;height:27px;text-align:center;z-index:9;">
+<p style="color:#000000;"><span style="font-size:24px;line-height:27.5px;color:#000000;">Left fan SP</span></p></div>
+<div id="Html4" style="position:absolute;left:381px;top:341px;width:200px;height:200px;z-index:10">
+<canvas data-type="radial-gauge"
+    data-width="200"
+    data-height="200"
+    data-units="%RPM"
+    data-min-value="0"
+    data-max-value="100"
+    data-major-ticks="0,10,20,30,40,50,60,70,80,90,100"
+    data-minor-ticks="2"
+    data-stroke-ticks="true"
+    data-highlights='[
+        {"from": 90, "to": 100, "color": "rgba(200, 200, 0, .75)"}
+    ]'
+    data-color-plate="#fff"
+    data-border-shadow-width="0"
+    data-borders="false"
+    data-needle-type="arrow"
+    data-needle-width="2"
+    data-needle-circle-size="7"
+    data-needle-circle-outer="true"
+    data-needle-circle-inner="false"
+    data-animation-duration="500"
+    data-animation-rule="linear"
+></canvas></div>
+<div id="wb_Text5" style="position:absolute;left:331px;top:526px;width:300px;height:27px;text-align:center;z-index:11;">
+<p style="color:#000000;"><span style="font-size:24px;line-height:27.5px;color:#000000;">Right fan SP</span></p></div>
+<div id="Html5" style="position:absolute;left:631px;top:102px;width:200px;height:200px;z-index:12">
+<canvas data-type="radial-gauge"
+    data-width="200"
+    data-height="200"
+    data-units="V"
+    data-min-value="0"
+    data-max-value="16"
+    data-major-ticks="0,2,4,6,8,10,12,14,16"
+    data-minor-ticks="2"
+    data-stroke-ticks="true"
+    data-highlights='[
+        {"from": 0, "to": 12.0, "color": "rgba(200, 0, 0, .75)"},
+        {"from": 12.0, "to": 12.4, "color": "rgba(200, 200, 0, .75)"},
+        {"from": 12.4, "to": 13.8, "color": "rgba(0, 200, 0, .75)"},
+        {"from": 13.8, "to": 14.8, "color": "rgba(200, 200, 50, .75)"},
+        {"from": 14.8, "to": 16, "color": "rgba(200, 0, 0, .75)"}
+    ]'
+    data-color-plate="#fff"
+    data-border-shadow-width="0"
+    data-borders="false"
+    data-needle-type="arrow"
+    data-needle-width="2"
+    data-needle-circle-size="7"
+    data-needle-circle-outer="true"
+    data-needle-circle-inner="false"
+    data-animation-duration="500"
+    data-animation-rule="linear"
+></canvas></div>
+<div id="wb_Text4" style="position:absolute;left:581px;top:287px;width:300px;height:27px;text-align:center;z-index:13;">
+<p style="font-size:24px;line-height:27.5px;color:#000000;"><span style="color:#000000;">Battery</span></p></div>
+<div id="Html6" style="position:absolute;left:631px;top:341px;width:200px;height:200px;z-index:14">
+<canvas data-type="radial-gauge"
+    data-width="200"
+    data-height="200"
+    data-units="V"
+    data-min-value="0"
+    data-max-value="16"
+    data-major-ticks="0,2,4,6,8,10,12,14,16"
+    data-minor-ticks="2"
+    data-stroke-ticks="true"
+    data-highlights='[
+        {"from": 14, "to": 14.8, "color": "rgba(0, 150, 0, .75)"}
+    ]'
+    data-color-plate="#fff"
+    data-border-shadow-width="0"
+    data-borders="false"
+    data-needle-type="arrow"
+    data-needle-width="2"
+    data-needle-circle-size="7"
+    data-needle-circle-outer="true"
+    data-needle-circle-inner="false"
+    data-animation-duration="500"
+    data-animation-rule="linear"
+></canvas></div>
+<div id="wb_Text6" style="position:absolute;left:581px;top:526px;width:300px;height:27px;text-align:center;z-index:15;">
+<p style="color:#000000;"><span style="font-size:24px;line-height:27.5px;color:#000000;">PSU</span></p></div>
+<div id="Html7" style="position:absolute;left:131px;top:580px;width:200px;height:200px;z-index:16">
+<canvas data-type="radial-gauge"
+    data-width="200"
+    data-height="200"
+    data-units="RPM"
+    data-min-value="0"
+    data-max-value="2000"
+    data-major-ticks="0,250,500,750,1000,1250,1500,1750,2000"
+    data-minor-ticks="5"
+    data-stroke-ticks="true"
+    data-highlights='[
+        {"from": 1750, "to": 2000, "color": "rgba(200, 200, 0, .75)"}
+    ]'
+    data-color-plate="#fff"
+    data-border-shadow-width="0"
+    data-borders="false"
+    data-needle-type="arrow"
+    data-needle-width="2"
+    data-needle-circle-size="7"
+    data-needle-circle-outer="true"
+    data-needle-circle-inner="false"
+    data-animation-duration="500"
+    data-animation-rule="linear"
+></canvas></div>
+<div id="wb_Text7" style="position:absolute;left:81px;top:765px;width:300px;height:27px;text-align:center;z-index:17;">
+<p style="color:#000000;"><span style="font-size:24px;line-height:27.5px;color:#000000;">Left fan RPM</span></p></div>
+<div id="Html9" style="position:absolute;left:381px;top:580px;width:200px;height:200px;z-index:18">
+<canvas data-type="radial-gauge"
+    data-width="200"
+    data-height="200"
+    data-units="RPM"
+    data-min-value="0"
+    data-max-value="2000"
+    data-major-ticks="0,250,500,750,1000,1250,1500,1750,2000"
+    data-minor-ticks="5"
+    data-stroke-ticks="true"
+    data-highlights='[
+        {"from": 1750, "to": 2000, "color": "rgba(200, 200, 0, .75)"}
+    ]'
+    data-color-plate="#fff"
+    data-border-shadow-width="0"
+    data-borders="false"
+    data-needle-type="arrow"
+    data-needle-width="2"
+    data-needle-circle-size="7"
+    data-needle-circle-outer="true"
+    data-needle-circle-inner="false"
+    data-animation-duration="500"
+    data-animation-rule="linear"
+></canvas></div>
+<div id="wb_Text10" style="position:absolute;left:331px;top:765px;width:300px;height:27px;text-align:center;z-index:19;">
+<p style="color:#000000;"><span style="font-size:24px;line-height:27.5px;color:#000000;">Right fan RPM</span></p></div>
+<div id="Html8" style="position:absolute;left:639px;top:580px;width:200px;height:200px;z-index:20">
+<canvas data-type="radial-gauge"
+    data-width="200"
+    data-height="200"
+    data-units="A"
+    data-min-value="-25"
+    data-max-value="25"
+    data-major-ticks="-25,-20,-15,-10,-5,0,5,10,15,20,25"
+    data-minor-ticks="5"
+    data-stroke-ticks="true"
+    data-highlights='[
+        {"from": -25, "to": -20, "color": "rgba(200, 0, 0, .75)"},
+        {"from": 20, "to": 25, "color": "rgba(200, 0, 0, .75)"}
+    ]'
+    data-color-plate="#fff"
+    data-border-shadow-width="0"
+    data-borders="false"
+    data-needle-type="arrow"
+    data-needle-width="2"
+    data-needle-circle-size="7"
+    data-needle-circle-outer="true"
+    data-needle-circle-inner="false"
+    data-animation-duration="500"
+    data-animation-rule="linear"
+></canvas></div>
+<div id="wb_Text8" style="position:absolute;left:589px;top:765px;width:300px;height:27px;text-align:center;z-index:21;">
+<p style="color:#000000;"><span style="font-size:24px;line-height:27.5px;color:#000000;">Battery</span></p></div>
+</div>
+<div id="PageHeader" style="position:fixed;overflow:hidden;text-align:center;left:0;top:0;right:0;height:50px;z-index:7777;">
+<div id="PageHeader_Container" style="width:970px;position:relative;margin-left:auto;margin-right:auto;text-align:left;">
+<div id="wb_CssMenu1" style="position:absolute;left:548px;top:5px;width:366px;height:40px;z-index:0;">
+<ul role="menubar">
+<li class="firstmain"><a role="menuitem" href="./diag.html" target="_self">Diagnostics</a>
+</li>
+<li><a role="menuitem" href="./settings.html" target="_self">Settings</a>
+</li>
+<li><a role="menuitem" href="./log.html" target="_self">Log</a>
+</li>
+<li><a role="menuitem" href="./info.html" target="_self">Info</a>
+</li>
+</ul>
+</div>
+<div id="wb_CssMenu2" style="position:absolute;left:8px;top:5px;width:237px;height:41px;z-index:1;">
+<ul role="menubar">
+<li class="firstmain"><a role="menuitem" href="./index.html" target="_self">M17&nbsp;Repeater&nbsp;Management&nbsp;Page</a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="wb_Footer">
+<div id="Footer">
+<div class="row">
+<div class="col-1">
+<div id="wb_Text9">
+<span style="color:#000000;font-family:Arial;font-size:13px;"><br></span><span style="color:#FFFFFF;font-family:Arial;font-size:13px;">Repeater Management Page by SP5WWP</span><span style="color:#000000;font-family:Arial;font-size:13px;"><br></span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

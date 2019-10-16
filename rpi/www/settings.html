@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>M17 Config</title>
+<meta name="generator" content="WYSIWYG Web Builder 15 Trial Version - http://www.wysiwygwebbuilder.com">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="Untitled1.css" rel="stylesheet">
+<link href="settings.css" rel="stylesheet">
+<script src="jquery-3.4.1.min.js"></script>
+<script src="scrollspy.min.js"></script>
+<script src="gauge.min.js"></script>
+<script>
+function changeVal()
+{
+   document.gauges[0].value=30;
+   document.gauges[1].value=52;
+   document.gauges[2].value=20;
+   document.gauges[3].value=20;
+}
+
+function LoadFile()
+{
+  var val=0.0;
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("GET", "vals.txt", false);
+  xmlhttp.send();
+  if (xmlhttp.status==200) {
+    var content = xmlhttp.responseText;
+    lines = content.split("\n"); 
+        for(i = 0; i < lines.length; i++){ 
+            val=parseFloat(lines[i]);
+            document.gauges[i].value=val;
+        }
+  }
+}
+
+function LoadLog()
+{
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("GET", "log.txt", false);
+  xmlhttp.send();
+  if (xmlhttp.status==200) {
+    var content = xmlhttp.responseText;
+    lines = content.split("\n"); 
+        //for(i = 0; i < lines.length; i++){ 
+            //lines[i]
+            document.getElementById("TextArea1").value=lines;
+        //}
+  }
+}
+</script>
+</head>
+<body data-spy="scroll">
+<div id="container">
+<a href="http://www.wysiwygwebbuilder.com" target="_blank"><img src="images/builtwithwwb15.png" alt="WYSIWYG Web Builder" style="position:absolute;left:441px;top:967px;margin: 0;border-width:0;z-index:250"></a>
+<div id="wb_Text1" style="position:absolute;left:212px;top:169px;width:546px;height:15px;text-align:center;z-index:4;">
+<p style="color:#000000;"><span style="color:#000000;">Pusto!</span></p></div>
+</div>
+<div id="PageHeader" style="position:fixed;overflow:hidden;text-align:center;left:0;top:0;right:0;height:50px;z-index:7777;">
+<div id="PageHeader_Container" style="width:970px;position:relative;margin-left:auto;margin-right:auto;text-align:left;">
+<div id="wb_CssMenu1" style="position:absolute;left:548px;top:5px;width:366px;height:40px;z-index:0;">
+<ul role="menubar">
+<li class="firstmain"><a role="menuitem" href="./diag.html" target="_self">Diagnostics</a>
+</li>
+<li><a role="menuitem" href="./settings.html" target="_self">Settings</a>
+</li>
+<li><a role="menuitem" href="./log.html" target="_self">Log</a>
+</li>
+<li><a role="menuitem" href="./info.html" target="_self">Info</a>
+</li>
+</ul>
+</div>
+<div id="wb_CssMenu2" style="position:absolute;left:8px;top:5px;width:237px;height:41px;z-index:1;">
+<ul role="menubar">
+<li class="firstmain"><a role="menuitem" href="./index.html" target="_self">M17&nbsp;Repeater&nbsp;Management&nbsp;Page</a>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="wb_Footer">
+<div id="Footer">
+<div class="row">
+<div class="col-1">
+<div id="wb_Text9">
+<span style="color:#000000;font-family:Arial;font-size:13px;"><br></span><span style="color:#FFFFFF;font-family:Arial;font-size:13px;">Repeater Management Page by SP5WWP</span><span style="color:#000000;font-family:Arial;font-size:13px;"><br></span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>
