@@ -2,8 +2,8 @@ import RPi.GPIO as GPIO
 import time
 
 from w1thermsensor import W1ThermSensor
-#import smbus
 from smbus2 import SMBus
+from mcp3208 import MCP3208
 
 #Consts
 T_SENSOR_1="000009a5e43c"
@@ -130,6 +130,7 @@ def GetRPM(fan):
 
 #----------------------------------------------------------------------------
 i2c = SMBus(1)
+adc = MCP3208()
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
@@ -155,6 +156,16 @@ while True:
 	left_fan=GetRPM(0)
 	right_fan=GetRPM(1)
 	
+	u_psu=0
+	u_bat=0
+	for i in range(1000):
+		u_psu+=adc.read(0)
+		u_bat+=adc.read(1)
+	u_psu/=1000.0
+	u_bat/=1000.0
+	u_psu*=14.46/1576.5
+	u_bat*=14.46/1576.5 #might need to change coeffs
+	
 	#overwrite
 	with open('/var/www/html/vals.txt', 'r') as file:
 		data = file.readlines()
@@ -162,6 +173,8 @@ while True:
 		data[1] = str(temp_2) + '\n'
 		data[2] = '20\n'
 		data[3] = '20\n'
+		data[4] = str(u_bat) + '\n'
+		data[5] = str(u_psu) + '\n'		
 		data[6] = str(left_fan) + '\n'
 		data[7] = str(right_fan) + '\n'
 
