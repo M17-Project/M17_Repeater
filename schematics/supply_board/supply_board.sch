@@ -20531,8 +20531,8 @@ schottky</description>
 <instance part="VR1" gate="G$1" x="269.24" y="185.42" rot="MR90"/>
 <instance part="GND39" gate="1" x="248.92" y="177.8"/>
 <instance part="GND40" gate="1" x="269.24" y="177.8"/>
-<instance part="R17" gate="G$1" x="284.48" y="182.88" rot="R180"/>
-<instance part="R18" gate="G$1" x="294.64" y="182.88" rot="R180"/>
+<instance part="R17" gate="G$1" x="284.48" y="190.5" rot="R180"/>
+<instance part="R18" gate="G$1" x="294.64" y="190.5" rot="R180"/>
 <instance part="GND41" gate="1" x="302.26" y="177.8"/>
 <instance part="R19" gate="G$1" x="276.86" y="200.66" rot="R90"/>
 <instance part="GND43" gate="1" x="337.82" y="193.04"/>
@@ -20875,8 +20875,8 @@ schottky</description>
 <segment>
 <pinref part="R18" gate="G$1" pin="1"/>
 <pinref part="GND41" gate="1" pin="GND"/>
-<wire x1="299.72" y1="182.88" x2="302.26" y2="182.88" width="0.1524" layer="91"/>
-<wire x1="302.26" y1="182.88" x2="302.26" y2="180.34" width="0.1524" layer="91"/>
+<wire x1="299.72" y1="190.5" x2="302.26" y2="190.5" width="0.1524" layer="91"/>
+<wire x1="302.26" y1="190.5" x2="302.26" y2="180.34" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="C19" gate="G$1" pin="-"/>
@@ -21672,12 +21672,13 @@ schottky</description>
 <net name="N$32" class="0">
 <segment>
 <pinref part="R19" gate="G$1" pin="1"/>
-<wire x1="276.86" y1="195.58" x2="276.86" y2="182.88" width="0.1524" layer="91"/>
-<pinref part="VR1" gate="G$1" pin="R"/>
-<wire x1="276.86" y1="182.88" x2="274.32" y2="187.96" width="0.1524" layer="91"/>
+<wire x1="276.86" y1="195.58" x2="276.86" y2="190.5" width="0.1524" layer="91"/>
 <pinref part="R17" gate="G$1" pin="2"/>
-<wire x1="276.86" y1="182.88" x2="279.4" y2="182.88" width="0.1524" layer="91"/>
-<junction x="276.86" y="182.88"/>
+<wire x1="276.86" y1="190.5" x2="279.4" y2="190.5" width="0.1524" layer="91"/>
+<pinref part="VR1" gate="G$1" pin="R"/>
+<wire x1="276.86" y1="190.5" x2="274.32" y2="190.5" width="0.1524" layer="91"/>
+<wire x1="274.32" y1="190.5" x2="274.32" y2="187.96" width="0.1524" layer="91"/>
+<junction x="276.86" y="190.5"/>
 </segment>
 </net>
 <net name="N$24" class="0">
