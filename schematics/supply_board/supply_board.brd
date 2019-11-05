@@ -135,7 +135,7 @@ GND</text>
 <text x="143.57" y="46.19" size="2.54" layer="51" font="vector" rot="R90">+</text>
 <text x="144.325" y="32.445" size="2.54" layer="51" font="vector" rot="R180">-</text>
 <text x="88" y="3" size="1.778" layer="51" font="vector">SUPPLY_BOARD_1.0</text>
-<text x="38.16" y="1.665" size="1.778" layer="51" font="vector">5.0V</text>
+<text x="38.16" y="1.665" size="1.778" layer="51" font="vector">5.2V</text>
 <text x="10.22" y="88.81" size="2.54" layer="51" font="vector" rot="R90">+</text>
 <text x="10.22" y="84.35" size="2.54" layer="51" font="vector" rot="R90">-</text>
 <text x="10.22" y="79.285" size="2.54" layer="51" font="vector" rot="R90">+</text>
@@ -3298,7 +3298,7 @@ design rules under a new name.</description>
 <element name="C19" library="rcl" package="E5-13" value="?" x="50.8" y="78.105"/>
 <element name="C2" library="rcl" package="C0805" value="47n" x="122.555" y="41.275" rot="R270"/>
 <element name="C3" library="rcl" package="C0805" value="4n7" x="127" y="40.005" rot="R180"/>
-<element name="C4" library="rcl" package="C0805" value="1u" x="55.245" y="54.61" rot="R90"/>
+<element name="C4" library="rcl" package="C0805" value="1u" x="53.34" y="54.61" rot="R90"/>
 <element name="C5" library="rcl" package="E5-13" value="?" x="80.645" y="73.66"/>
 <element name="C6" library="rcl" package="C0805" value="1u" x="98.425" y="67.31" rot="R90"/>
 <element name="C7" library="rcl" package="C0805" value="1u" x="80.645" y="49.53"/>
@@ -3316,7 +3316,7 @@ design rules under a new name.</description>
 <attribute name="MANUFACTURER_NAME" value="LEM" x="123.825" y="63.5" size="1.778" layer="27" display="off"/>
 </element>
 <element name="IC2" library="linear" package="DIL14" value="LM324N" x="98.425" y="57.15" rot="R180"/>
-<element name="IC3" library="linear" package="TO220V" value="AIMTEC 5.0V" x="48.26" y="48.895" rot="R270"/>
+<element name="IC3" library="linear" package="TO220V" value="AIMTEC 5.0V" x="51.435" y="48.895" rot="R270"/>
 <element name="IC4" library="linear" package="TO220V" value="AIMTEC 3.3V" x="66.04" y="48.895" rot="R270"/>
 <element name="IC6" library="mcp3208" package="DIL16" value="MCP3208" x="127" y="30.48" rot="R180"/>
 <element name="IC7" library="analog-devices" package="DIL16" value="AD7524JN" x="102.235" y="30.48">
@@ -3945,9 +3945,9 @@ design rules under a new name.</description>
 <wire x1="32.385" y1="81.28" x2="38.1" y2="81.28" width="0.6604" layer="16"/>
 <via x="38.1" y="81.28" extent="1-16" drill="0.3"/>
 <wire x1="38.1" y1="81.28" x2="38.1" y2="85.725" width="0.6604" layer="1"/>
-<wire x1="45.72" y1="51.435" x2="55.245" y2="51.435" width="1.5" layer="1"/>
-<wire x1="55.245" y1="51.435" x2="63.5" y2="51.435" width="1.5" layer="1"/>
-<wire x1="55.245" y1="53.66" x2="55.245" y2="51.435" width="1.5" layer="1"/>
+<wire x1="48.895" y1="51.435" x2="53.34" y2="51.435" width="1.5" layer="1"/>
+<wire x1="53.34" y1="51.435" x2="63.5" y2="51.435" width="1.5" layer="1"/>
+<wire x1="53.34" y1="53.66" x2="53.34" y2="51.435" width="1.5" layer="1"/>
 <contactref element="IC10" pad="1"/>
 <contactref element="IC5" pad="1"/>
 <contactref element="C21" pad="+"/>
@@ -4182,12 +4182,11 @@ design rules under a new name.</description>
 <wire x1="52.07" y1="8.35" x2="52.07" y2="5.81" width="2" layer="1"/>
 <wire x1="47.305" y1="5.81" x2="52.07" y2="5.81" width="1.5" layer="1"/>
 <wire x1="52.07" y1="23.59" x2="52.07" y2="27.94" width="2" layer="1"/>
-<wire x1="52.07" y1="27.94" x2="52.07" y2="43.815" width="2" layer="1"/>
-<wire x1="52.07" y1="43.815" x2="49.53" y2="46.355" width="2" layer="1"/>
-<wire x1="49.53" y1="46.355" x2="45.72" y2="46.355" width="2" layer="1"/>
 <contactref element="C16" pad="+"/>
 <wire x1="55.88" y1="28.035" x2="52.165" y2="28.035" width="2" layer="1"/>
 <wire x1="52.165" y1="28.035" x2="52.07" y2="27.94" width="2" layer="1" curve="90"/>
+<wire x1="48.895" y1="46.355" x2="52.07" y2="46.355" width="2" layer="1"/>
+<wire x1="52.07" y1="46.355" x2="52.07" y2="27.94" width="2" layer="1"/>
 </signal>
 <signal name="3V3_OUT">
 <contactref element="IC4" pad="3"/>
