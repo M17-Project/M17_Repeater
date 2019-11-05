@@ -134,7 +134,7 @@ GND</text>
 <text x="152.215" y="18.935" size="1.778" layer="51" font="vector" rot="R180">BATT</text>
 <text x="143.57" y="46.19" size="2.54" layer="51" font="vector" rot="R90">+</text>
 <text x="144.325" y="32.445" size="2.54" layer="51" font="vector" rot="R180">-</text>
-<text x="88" y="3" size="1.778" layer="51" font="vector">SUPPLY_BOARD_1.0</text>
+<text x="88" y="3" size="1.778" layer="51" font="vector">SUPPLY_BOARD_1.1</text>
 <text x="38.16" y="1.665" size="1.778" layer="51" font="vector">5.2V</text>
 <text x="10.22" y="88.81" size="2.54" layer="51" font="vector" rot="R90">+</text>
 <text x="10.22" y="84.35" size="2.54" layer="51" font="vector" rot="R90">-</text>
