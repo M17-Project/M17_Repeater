@@ -21,6 +21,10 @@ LATCH = 5
 FAN_R = 6
 FAN_L = 7
 
+#vars
+fan_L_sp=100
+fan_R_sp=20
+
 #----------------------------------------------------------------------------
 def GetRPM(fan):
 	if fan == 0:
@@ -139,8 +143,8 @@ GPIO.setup(18, GPIO.OUT)
  
 fan_L = GPIO.PWM(12, 500)
 fan_R = GPIO.PWM(18, 500)
-fan_L.start(20)
-fan_R.start(20)
+fan_L.start(fan_L_sp)
+fan_R.start(fan_R_sp)
 
 val=(1<<OE_1)|(1<<OE_2)|(1<<OE_3)|(0<<CLR)|(1<<CLK_EN)
 i2c.write_byte(PCF_CTRL, val)
@@ -171,8 +175,8 @@ while True:
 		data = file.readlines()
 		data[0] = str(temp_1) + '\n'
 		data[1] = str(temp_2) + '\n'
-		data[2] = '20\n'
-		data[3] = '20\n'
+		data[2] = str(fan_L_sp) + '\n'
+		data[3] = str(fan_R_sp) + '\n'
 		data[4] = str(u_bat) + '\n'
 		data[5] = str(u_psu) + '\n'		
 		data[6] = str(left_fan) + '\n'
