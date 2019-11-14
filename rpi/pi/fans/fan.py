@@ -174,7 +174,7 @@ while True:
 	i_bat/=1000.0
 	u_psu*=14.46/1576.5
 	u_bat*=14.51/1576.5 #might need to change coeffs
-	i_bat*=1.0
+	i_bat/=100.0
 	
 	#overwrite
 	with open('/var/www/html/vals.txt', 'r') as file:
@@ -187,7 +187,7 @@ while True:
 		data[5] = str(u_psu) + '\n'		
 		data[6] = str(left_fan) + '\n'
 		data[7] = str(right_fan) + '\n'
-		data[7] = str(i_bat) + '\n'
+		data[8] = str(i_bat) + '\n'
 
 		with open('/var/www/html/vals.txt', 'w') as file:
 			file.writelines(data)
