@@ -22,7 +22,7 @@ FAN_R = 6
 FAN_L = 7
 
 #vars
-fan_L_sp=100
+fan_L_sp=20
 fan_R_sp=20
 
 #----------------------------------------------------------------------------
@@ -162,13 +162,19 @@ while True:
 	
 	u_psu=0
 	u_bat=0
+	i_bat=0
+	
 	for i in range(1000):
 		u_psu+=adc.read(0)
 		u_bat+=adc.read(1)
+		i_bat+=adc.read(2)-adc.read(3)
+		
 	u_psu/=1000.0
 	u_bat/=1000.0
+	i_bat/=1000.0
 	u_psu*=14.46/1576.5
 	u_bat*=14.51/1576.5 #might need to change coeffs
+	i_bat*=1.0
 	
 	#overwrite
 	with open('/var/www/html/vals.txt', 'r') as file:
@@ -181,6 +187,7 @@ while True:
 		data[5] = str(u_psu) + '\n'		
 		data[6] = str(left_fan) + '\n'
 		data[7] = str(right_fan) + '\n'
+		data[7] = str(i_bat) + '\n'
 
 		with open('/var/www/html/vals.txt', 'w') as file:
 			file.writelines(data)
