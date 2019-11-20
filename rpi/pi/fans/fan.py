@@ -173,8 +173,9 @@ while True:
 	u_bat/=1000.0
 	i_bat/=1000.0
 	u_psu*=14.46/1576.5
-	u_bat*=14.51/1576.5 #might need to change coeffs
+	u_bat*=14.51/1576.5*12.67/12.57 #might need to change coeffs
 	i_bat/=100.0
+	i_bat*=63.0/50.0;
 	
 	#overwrite
 	with open('/var/www/html/vals.txt', 'r') as file:
