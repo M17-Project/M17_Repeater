@@ -88,8 +88,11 @@ volatile uint8_t rcv_buff[PLOAD_LEN];						//Si RX buffer
 volatile uint32_t tx_freq=439075000;						//TX frequency in Hz
 volatile uint32_t rx_freq=431475000;						//RX
 
+//QSO
 volatile uint32_t last_id_from=0;
 volatile uint32_t last_id_to=0;
+volatile uint8_t  content_type=0;
+volatile uint8_t  encr_type=0;
 
 //UART
 volatile uint8_t rx_buff[UART_BUFF_LEN];
@@ -751,7 +754,7 @@ void LCD_Blight(uint8_t perc)
 	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
 }
 
-void L_Fan_RPM(uint8_t perc)
+/*void L_Fan_RPM(uint8_t perc)
 {
 	if(perc<101)
 		TIM4->CCR2=perc;
@@ -769,20 +772,20 @@ void R_Fan_RPM(uint8_t perc)
 		TIM4->CCR3=100;
 
 	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
-}
+}*/
 
 //------------------------------------MISC-------------------------------------
 void Tamper_check(void)
 {
 	if(HAL_GPIO_ReadPin(TAMPER_GPIO_Port, TAMPER_Pin))
 	{
-		LCD_PutStrFast(0, 7, "OBUDOWA OTWARTA", 1);
-		HAL_GPIO_WritePin(LED_3_GPIO_Port, LED_3_Pin, 1);
+		LCD_PutStrFast(0, 7, "CASE OPEN", 1);
+		HAL_GPIO_WritePin(LED_4_GPIO_Port, LED_4_Pin, 1);
 	}
 	else
 	{
-		LCD_PutStrFast(0, 7, "               ", 1);
-		HAL_GPIO_WritePin(LED_3_GPIO_Port, LED_3_Pin, 0);
+		LCD_PutStrFast(0, 7, "         ", 1);
+		HAL_GPIO_WritePin(LED_4_GPIO_Port, LED_4_Pin, 0);
 	}
 }
 
@@ -853,11 +856,14 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			RX_ReadRxDataBuff(PLOAD_LEN, rcv_buff);
 			RX_ClearFIFO(3);
 
+			content_type=(rcv_buff[0]>>6)&3;
+			encr_type=(rcv_buff[0]>>4)&3;
+
 			uint32_t now_id_from=(rcv_buff[19]<<16) | (rcv_buff[20]<<8) | rcv_buff[21];
 			uint32_t now_id_to=(rcv_buff[22]<<16) | (rcv_buff[23]<<8) | rcv_buff[24];
 
 			TX_TxData(rcv_buff, PLOAD_LEN, 0);
-			HAL_UART_Transmit(&huart1, "A", 1, 100);
+			HAL_UART_Transmit(&huart1, "A", 1, 100); //TODO: append full "AT+FRAME=..\r\n"
 			HAL_UART_Transmit_DMA(&huart1, rcv_buff, PLOAD_LEN);
 
 			if(last_id_from!=now_id_from)
@@ -866,10 +872,21 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 				last_id_to=now_id_to;
 
 			uint8_t s[20];
-			sprintf(s, "%07d->", last_id_from);
-			LCD_PutStrFast(114, 2, s, 1);
-			sprintf(s, "    ->%07d", last_id_to);
-			LCD_PutStrFast(114, 3, s, 1);
+			if(!encr_type)
+			{
+				sprintf(s, "->  %07d  ", last_id_from);
+				LCD_PutStrFast(102, 2, s, 1);
+				sprintf(s, "<-  %07d  ", last_id_to);
+				LCD_PutStrFast(102, 3, s, 1);
+				LCD_PutStrFast(102+4*6, 0, "    ", 1);
+			}
+			else
+			{
+				LCD_PutStrFast(102, 2, "-> (UNKNOWN)", 1);
+				LCD_PutStrFast(102, 3, "<- (UNKNOWN)", 1);
+				LCD_PutStrFast(102+4*6, 0, "ENCR", 1);
+			}
+
 		}
 
 		//clear pending flags
@@ -1008,20 +1025,22 @@ int main(void)
   TX_SetTxPower(3);//MAX_TX_POWER);
   r_initd=1;
 
-  LCD_Blight(50);
-  L_Fan_RPM(20);
-  R_Fan_RPM(20);
+  LCD_Blight(50); //50
+  //L_Fan_RPM(20);
+  //R_Fan_RPM(20);
 
-  LCD_PutStrFast(0, 0, "SR5MS", 2); LCD_PutStrFast(138, 0, "ACT", 1);
+  LCD_PutStrFast(0, 0, "SR5MS", 2); LCD_PutStrFast(102, 0, "ACT", 1);
 
   uint8_t line[20];
-  sprintf(line, "RX %dMHz", rx_freq);
-  memmove(&line[7], &line[6], 9);
+  sprintf(line, "RX %d", rx_freq);
+  memmove(&line[7], &line[6], 4);
   line[6]='.';
+  sprintf(&line[11], "MHz");
   LCD_PutStrFast(0, 2, line, 1);
-  sprintf(line, "TX %dMHz", tx_freq);
-  memmove(&line[7], &line[6], 9);
+  sprintf(line, "TX %d", tx_freq);
+  memmove(&line[7], &line[6], 4);
   line[6]='.';
+  sprintf(&line[11], "MHz");
   LCD_PutStrFast(0, 3, line, 1);
 
   Tamper_check();
