@@ -1,0 +1,428 @@
+EESchema-LIBRARY Version 2.4
+#encoding utf-8
+#
+# ABLNO-Oscillator-Mainboard-rescue-rx_board-rescue-rx_board-rescue
+#
+DEF ABLNO-Oscillator-Mainboard-rescue-rx_board-rescue-rx_board-rescue X 0 20 Y Y 1 F N
+F0 "X" -350 250 50 H V L CNN
+F1 "ABLNO-Oscillator-Mainboard-rescue-rx_board-rescue-rx_board-rescue" 150 250 50 H V L CNN
+F2 "Oscillator:Oscillator_SMD_Abracon_ABLNO" 0 -350 50 H I C CNN
+F3 "" -200 100 50 H I C CNN
+$FPLIST
+ Oscillator*Abracon*ABLNO*
+$ENDFPLIST
+DRAW
+S -300 200 300 -200 0 1 10 f
+P 9 0 1 0 -225 75 -200 75 -200 125 -175 125 -175 75 -150 75 -150 125 -125 125 -125 75 N
+X Vctrl 1 -400 0 100 R 50 50 1 1 I
+X GND 2 0 -300 100 U 50 50 1 1 W
+X RFout 3 400 0 100 L 50 50 1 1 O
+X VDD 4 0 300 100 D 50 50 1 1 W
+ENDDRAW
+ENDDEF
+#
+# ADF7021-adf7021-rx_board-rescue-rx_board-rescue
+#
+DEF ADF7021-adf7021-rx_board-rescue-rx_board-rescue U 0 40 Y Y 1 F N
+F0 "U" 0 -250 49 H V C CNN
+F1 "ADF7021-adf7021-rx_board-rescue-rx_board-rescue" 0 450 49 H V C CNN
+F2 "" -200 -250 49 H I C CNN
+F3 "" -200 -250 49 H I C CNN
+DRAW
+S -800 950 950 -900 0 1 0 f
+X VCOIN 1 -1000 550 200 R 50 50 1 1 I
+X RSET 10 -1000 -350 200 R 50 50 1 1 I
+X CREG4 11 -1000 -450 200 R 50 50 1 1 I
+X GND4 12 -1000 -550 200 R 50 50 1 1 I
+X MIX_I 13 -450 -1100 200 U 50 50 1 1 I
+X NMIX_I 14 -350 -1100 200 U 50 50 1 1 I
+X MIX_Q 15 -250 -1100 200 U 50 50 1 1 I
+X NMIX_Q 16 -150 -1100 200 U 50 50 1 1 I
+X FILT_I 17 -50 -1100 200 U 50 50 1 1 I
+X NFILT_I 18 50 -1100 200 U 50 50 1 1 I
+X GND4 19 150 -1100 200 U 50 50 1 1 I
+X CREG1 2 -1000 450 200 R 50 50 1 1 I
+X FILT_Q 20 250 -1100 200 U 50 50 1 1 I
+X NFILT_Q 21 350 -1100 200 U 50 50 1 1 I
+X GND4 22 450 -1100 200 U 50 50 1 1 I
+X TEST_A 23 550 -1100 200 U 50 50 1 1 I
+X CE 24 650 -1100 200 U 50 50 1 1 I
+X SLE 25 1150 -550 200 L 50 50 1 1 I
+X SDATA 26 1150 -450 200 L 50 50 1 1 I
+X SREAD 27 1150 -350 200 L 50 50 1 1 I
+X SCLK 28 1150 -250 200 L 50 50 1 1 I
+X GND2 29 1150 -150 200 L 50 50 1 1 I
+X VDD1 3 -1000 350 200 R 50 50 1 1 I
+X ADCIN 30 1150 -50 200 L 50 50 1 1 I
+X CREG2 31 1150 50 200 L 50 50 1 1 I
+X VDD2 32 1150 150 200 L 50 50 1 1 I
+X SWD 33 1150 250 200 L 50 50 1 1 I
+X TxRxDATA 34 1150 350 200 L 50 50 1 1 I
+X TxRxCLK 35 1150 450 200 L 50 50 1 1 I
+X CLKOUT 36 1150 550 200 L 50 50 1 1 I
+X MUXOUT 37 650 1150 200 D 50 50 1 1 I
+X OSC2 38 550 1150 200 D 50 50 1 1 I
+X OSC1 39 450 1150 200 D 50 50 1 1 I
+X RFOUT 4 -1000 250 200 R 50 50 1 1 I
+X VDD3 40 350 1150 200 D 50 50 1 1 I
+X CREG3 41 250 1150 200 D 50 50 1 1 I
+X CPOUT 42 150 1150 200 D 50 50 1 1 I
+X VDD 43 50 1150 200 D 50 50 1 1 I
+X L2 44 -50 1150 200 D 50 50 1 1 I
+X GND 45 -150 1150 200 D 50 50 1 1 I
+X L1 46 -250 1150 200 D 50 50 1 1 I
+X GND1 47 -350 1150 200 D 50 50 1 1 I
+X CVCO 48 -450 1150 200 D 50 50 1 1 I
+X EPAD 49 1150 -850 200 L 50 50 1 1 I
+X RFGND 5 -1000 150 200 R 50 50 1 1 I
+X RFIN 6 -1000 50 200 R 50 50 1 1 I
+X RFINB 7 -1000 -50 200 R 50 50 1 1 I
+X RLNA 8 -1000 -150 200 R 50 50 1 1 I
+X VDD4 9 -1000 -250 200 R 50 50 1 1 I
+ENDDRAW
+ENDDEF
+#
+# AFT05MS004NT1-TR-9-rx_board-rescue-rx_board-rescue
+#
+DEF AFT05MS004NT1-TR-9-rx_board-rescue-rx_board-rescue T 0 40 Y Y 1 L N
+F0 "T" -450 100 59 H V L BNN
+F1 "AFT05MS004NT1-TR-9-rx_board-rescue-rx_board-rescue" -450 0 59 H V L BNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+DRAW
+C 100 -100 14 1 0 0 N
+P 2 1 0 0 -100 -100 -48 -100 N
+P 2 1 0 0 -45 100 -45 -100 N
+P 2 1 0 0 0 -100 0 -145 N
+P 2 1 0 0 0 -55 0 -100 N
+P 2 1 0 0 0 0 0 -30 N
+P 2 1 0 0 0 0 100 0 N
+P 2 1 0 0 0 30 0 0 N
+P 2 1 0 0 0 100 0 55 N
+P 2 1 0 0 0 100 100 100 N
+P 2 1 0 0 0 145 0 100 N
+P 2 1 0 0 100 -100 0 -100 N
+P 2 1 0 0 100 0 100 -100 N
+P 2 1 0 0 100 100 100 200 N
+P 3 1 0 0 10 0 50 30 50 -30 F
+X D D 100 300 100 D 0 0 1 0 P
+X G G -200 -100 100 R 0 0 1 0 P
+X S S 100 -300 200 U 0 0 1 0 P
+ENDDRAW
+ENDDEF
+#
+# BGA2874-RF_Amplifier-bga2874-rf_amplifier
+#
+DEF BGA2874-RF_Amplifier-bga2874-rf_amplifier U 0 20 Y Y 1 F N
+F0 "U" 100 250 50 H V C CNN
+F1 "BGA2874-RF_Amplifier-bga2874-rf_amplifier" 150 150 50 H V C CNN
+F2 "Package_TO_SOT_SMD:SOT-363_SC-70-6" -50 -650 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ SOT*363*
+$ENDFPLIST
+DRAW
+P 4 0 1 10 200 0 -200 200 -200 -200 200 0 f
+X Vcc 1 -100 300 150 D 50 50 1 1 W
+X G 2 -100 -300 150 U 50 50 1 1 W
+X ~ 3 300 0 100 L 50 50 1 1 O
+X G 4 -100 -300 150 U 50 50 1 1 P N
+X G 5 -100 -300 150 U 50 50 1 1 P N
+X ~ 6 -300 0 100 R 50 50 1 1 I
+ENDDRAW
+ENDDEF
+#
+# BGA6589-TR-9-rx_board-rescue-rx_board-rescue
+#
+DEF BGA6589-TR-9-rx_board-rescue-rx_board-rescue Q 0 40 Y Y 1 F N
+F0 "Q" 0 450 79 H V C CNN
+F1 "BGA6589-TR-9-rx_board-rescue-rx_board-rescue" 0 300 79 H V C CNN
+F2 "" 0 1350 79 H I C CNN
+F3 "" 0 1350 79 H I C CNN
+DRAW
+S -550 250 550 -250 0 1 0 f
+X RF_OUT/BIAS 1 650 0 100 L 50 50 1 1 I
+X GND 2 0 -350 100 U 50 50 1 1 I
+X RF_IN 3 -650 0 100 R 50 50 1 1 I
+ENDDRAW
+ENDDEF
+#
+# CP_Small-Device-Mainboard-rescue-rx_board-rescue-rx_board-rescue
+#
+DEF CP_Small-Device-Mainboard-rescue-rx_board-rescue-rx_board-rescue C 0 10 N N 1 F N
+F0 "C" 10 70 50 H V L CNN
+F1 "CP_Small-Device-Mainboard-rescue-rx_board-rescue-rx_board-rescue" 10 -80 50 H V L CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ CP_*
+$ENDFPLIST
+DRAW
+S -60 -12 60 -27 0 1 0 F
+S -60 27 60 12 0 1 0 N
+P 2 0 1 0 -50 60 -30 60 N
+P 2 0 1 0 -40 50 -40 70 N
+X ~ 1 0 100 73 D 50 50 1 1 P
+X ~ 2 0 -100 73 U 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# C_Small-Device-Mainboard-rescue-rx_board-rescue-rx_board-rescue
+#
+DEF C_Small-Device-Mainboard-rescue-rx_board-rescue-rx_board-rescue C 0 10 N N 1 F N
+F0 "C" 10 70 50 H V L CNN
+F1 "C_Small-Device-Mainboard-rescue-rx_board-rescue-rx_board-rescue" 10 -80 50 H V L CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ C_*
+$ENDFPLIST
+DRAW
+P 2 0 1 13 -60 -20 60 -20 N
+P 2 0 1 12 -60 20 60 20 N
+X ~ 1 0 100 80 D 50 50 1 1 P
+X ~ 2 0 -100 80 U 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# C_Small-device-Mainboard-rescue-rx_board-rescue-rx_board-rescue
+#
+DEF C_Small-device-Mainboard-rescue-rx_board-rescue-rx_board-rescue C 0 10 N N 1 F N
+F0 "C" 10 70 50 H V L CNN
+F1 "C_Small-device-Mainboard-rescue-rx_board-rescue-rx_board-rescue" 10 -80 50 H V L CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ C_*
+$ENDFPLIST
+DRAW
+P 2 0 1 13 -60 -20 60 -20 N
+P 2 0 1 12 -60 20 60 20 N
+X ~ 1 0 100 80 D 50 50 1 1 P
+X ~ 2 0 -100 80 U 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# Conn_Coaxial-conn-Mainboard-rescue-rx_board-rescue-rx_board-rescue
+#
+DEF Conn_Coaxial-conn-Mainboard-rescue-rx_board-rescue-rx_board-rescue J 0 40 Y N 1 F N
+F0 "J" 10 120 50 H V C CNN
+F1 "Conn_Coaxial-conn-Mainboard-rescue-rx_board-rescue-rx_board-rescue" 115 0 50 V V C CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ *BNC*
+ *SMA*
+ *SMB*
+ *SMC*
+ *Cinch*
+$ENDFPLIST
+DRAW
+A -2 0 71 1636 0 0 1 10 N -70 20 70 0
+A -1 0 71 0 -1638 0 1 10 N 70 0 -70 -20
+C 0 0 20 0 1 8 N
+P 2 0 1 0 -50 0 -20 0 N
+P 2 0 1 0 0 -100 0 -70 N
+X In 1 -150 0 100 R 50 50 1 1 P
+X Ext 2 0 -200 100 U 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# D_x2_KCom_AAK-Device-Mainboard-rescue-rx_board-rescue-rx_board-rescue
+#
+DEF D_x2_KCom_AAK-Device-Mainboard-rescue-rx_board-rescue-rx_board-rescue D 0 30 Y N 1 F N
+F0 "D" 50 -100 50 H V C CNN
+F1 "D_x2_KCom_AAK-Device-Mainboard-rescue-rx_board-rescue-rx_board-rescue" 0 100 50 H V C CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+DRAW
+C 0 0 10 0 1 0 F
+P 2 0 1 0 -150 0 150 0 N
+P 2 0 1 0 0 0 0 -100 N
+P 3 0 1 8 -50 -50 -50 50 -50 50 N
+P 3 0 1 8 50 -50 50 50 50 50 N
+P 6 0 1 8 -150 50 -50 0 -150 -50 -150 50 -150 50 -150 50 N
+P 6 0 1 8 150 -50 50 0 150 50 150 -50 150 -50 150 -50 N
+X A 1 -300 0 150 R 50 50 0 1 P
+X A 2 300 0 150 L 50 50 0 1 P
+X K 3 0 -200 100 U 50 50 0 1 P
+ENDDRAW
+ENDDEF
+#
+# HMC546MS8GETR-TR-9-rx_board-rescue-rx_board-rescue
+#
+DEF HMC546MS8GETR-TR-9-rx_board-rescue-rx_board-rescue U 0 40 Y Y 1 L N
+F0 "U" -600 350 85 H V L BNN
+F1 "HMC546MS8GETR-TR-9-rx_board-rescue-rx_board-rescue" -100 350 85 H V L BNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+DRAW
+S -600 300 500 -300 1 1 0 f
+X TX 1 -700 200 100 R 50 50 1 0 B
+X GND1 2 200 -400 100 U 50 50 1 0 B
+X VCTL 3 -300 -400 100 U 50 50 1 0 B
+X ACG 4 -100 -400 100 U 50 50 1 0 B
+X RX 5 -700 -200 100 R 50 50 1 0 B
+X VDD 6 -200 400 100 D 50 50 1 0 B
+X GND2 7 100 -400 100 U 50 50 1 0 B
+X RFC 8 600 0 100 L 50 50 1 0 B
+X EP EP 300 -400 100 U 50 50 1 0 B
+ENDDRAW
+ENDDEF
+#
+# L-device-Mainboard-rescue-rx_board-rescue-rx_board-rescue
+#
+DEF L-device-Mainboard-rescue-rx_board-rescue-rx_board-rescue L 0 40 N N 1 F N
+F0 "L" -50 0 50 V V C CNN
+F1 "L-device-Mainboard-rescue-rx_board-rescue-rx_board-rescue" 75 0 50 V V C CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ Choke_*
+ *Coil*
+ Inductor_*
+ L_*
+$ENDFPLIST
+DRAW
+A 0 -75 25 -899 899 0 1 0 N 0 -100 0 -50
+A 0 -25 25 -899 899 0 1 0 N 0 -50 0 0
+A 0 25 25 -899 899 0 1 0 N 0 0 0 50
+A 0 75 25 -899 899 0 1 0 N 0 50 0 100
+X 1 1 0 150 50 D 50 50 1 1 P
+X 2 2 0 -150 50 U 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# LM2904-Amplifier_Operational-Mainboard-rescue-rx_board-rescue-rx_board-rescue
+#
+DEF LM2904-Amplifier_Operational-Mainboard-rescue-rx_board-rescue-rx_board-rescue U 0 5 Y Y 3 L N
+F0 "U" 0 200 50 H V L CNN
+F1 "LM2904-Amplifier_Operational-Mainboard-rescue-rx_board-rescue-rx_board-rescue" 0 -200 50 H V L CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ SOIC*3.9x4.9mm*P1.27mm*
+ DIP*W7.62mm*
+ TO*99*
+ OnSemi*Micro8*
+ TSSOP*3x3mm*P0.65mm*
+ TSSOP*4.4x3mm*P0.65mm*
+ MSOP*3x3mm*P0.65mm*
+ SSOP*3.9x4.9mm*P0.635mm*
+ LFCSP*2x2mm*P0.5mm*
+ *SIP*
+ SOIC*5.3x6.2mm*P1.27mm*
+$ENDFPLIST
+DRAW
+P 4 1 1 10 -200 200 200 0 -200 -200 -200 200 f
+P 4 2 1 10 -200 200 200 0 -200 -200 -200 200 f
+X ~ 1 300 0 100 L 50 50 1 1 O
+X - 2 -300 -100 100 R 50 50 1 1 I
+X + 3 -300 100 100 R 50 50 1 1 I
+X + 5 -300 100 100 R 50 50 2 1 I
+X - 6 -300 -100 100 R 50 50 2 1 I
+X ~ 7 300 0 100 L 50 50 2 1 O
+X V- 4 -100 -300 150 U 50 50 3 1 W
+X V+ 8 -100 300 150 D 50 50 3 1 W
+ENDDRAW
+ENDDEF
+#
+# L_Small-Device-Mainboard-rescue-rx_board-rescue-rx_board-rescue
+#
+DEF L_Small-Device-Mainboard-rescue-rx_board-rescue-rx_board-rescue L 0 10 N N 1 F N
+F0 "L" 30 40 50 H V L CNN
+F1 "L_Small-Device-Mainboard-rescue-rx_board-rescue-rx_board-rescue" 30 -40 50 H V L CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ Choke_*
+ *Coil*
+ Inductor_*
+ L_*
+$ENDFPLIST
+DRAW
+A 0 -60 20 -899 899 0 1 0 N 0 -80 0 -40
+A 0 -20 20 -899 899 0 1 0 N 0 -40 0 0
+A 0 20 20 -899 899 0 1 0 N 0 0 0 40
+A 0 60 20 -899 899 0 1 0 N 0 40 0 80
+X ~ 1 0 100 20 D 50 50 1 1 P
+X ~ 2 0 -100 20 U 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# L_Small-device-Mainboard-rescue-rx_board-rescue-rx_board-rescue
+#
+DEF L_Small-device-Mainboard-rescue-rx_board-rescue-rx_board-rescue L 0 10 N N 1 F N
+F0 "L" 30 40 50 H V L CNN
+F1 "L_Small-device-Mainboard-rescue-rx_board-rescue-rx_board-rescue" 30 -40 50 H V L CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ Choke_*
+ *Coil*
+ Inductor_*
+ L_*
+$ENDFPLIST
+DRAW
+A 0 -60 20 -899 899 0 1 0 N 0 -80 0 -40
+A 0 -20 20 -899 899 0 1 0 N 0 -40 0 0
+A 0 20 20 -899 899 0 1 0 N 0 0 0 40
+A 0 60 20 -899 899 0 1 0 N 0 40 0 80
+X ~ 1 0 100 20 D 50 50 1 1 P
+X ~ 2 0 -100 20 U 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# R_Small-Device-Mainboard-rescue-rx_board-rescue-rx_board-rescue
+#
+DEF R_Small-Device-Mainboard-rescue-rx_board-rescue-rx_board-rescue R 0 10 N N 1 F N
+F0 "R" 30 20 50 H V L CNN
+F1 "R_Small-Device-Mainboard-rescue-rx_board-rescue-rx_board-rescue" 30 -40 50 H V L CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ R_*
+$ENDFPLIST
+DRAW
+S -30 70 30 -70 0 1 8 N
+X ~ 1 0 100 30 D 50 50 1 1 P
+X ~ 2 0 -100 30 U 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# R_Small-device-Mainboard-rescue-rx_board-rescue-rx_board-rescue
+#
+DEF R_Small-device-Mainboard-rescue-rx_board-rescue-rx_board-rescue R 0 10 N N 1 F N
+F0 "R" 30 20 50 H V L CNN
+F1 "R_Small-device-Mainboard-rescue-rx_board-rescue-rx_board-rescue" 30 -40 50 H V L CNN
+F2 "" 0 0 50 H I C CNN
+F3 "" 0 0 50 H I C CNN
+$FPLIST
+ R_*
+$ENDFPLIST
+DRAW
+S -30 70 30 -70 0 1 8 N
+X ~ 1 0 100 30 D 50 50 1 1 P
+X ~ 2 0 -100 30 U 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+# TestPoint_Probe-Connector-Mainboard-rescue-rx_board-rescue-rx_board-rescue
+#
+DEF TestPoint_Probe-Connector-Mainboard-rescue-rx_board-rescue-rx_board-rescue TP 0 30 N N 1 F N
+F0 "TP" 65 230 50 H V C CNN
+F1 "TestPoint_Probe-Connector-Mainboard-rescue-rx_board-rescue-rx_board-rescue" 65 160 50 H V C CNN
+F2 "" 200 0 50 H I C CNN
+F3 "" 200 0 50 H I C CNN
+$FPLIST
+ Pin*
+ Test*
+$ENDFPLIST
+DRAW
+P 4 0 1 0 50 30 0 0 30 50 50 30 F
+P 5 0 1 0 55 25 25 55 95 125 125 95 55 25 f
+X 1 1 0 0 0 U 50 50 1 1 P
+ENDDRAW
+ENDDEF
+#
+#End Library
